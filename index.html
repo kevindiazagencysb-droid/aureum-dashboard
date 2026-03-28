@@ -53,7 +53,7 @@ tr:hover td{background:rgba(255,215,0,0.03)}
     <div class="sub">Dashboard de Agendas y Ventas - Evergreen</div>
   </div>
   <div style="display:flex;align-items:center;gap:12px">
-    <button class="refresh-btn" onclick="loadData()">Actualizar datos</button>
+    <button class="refresh-btn" id="btnRefresh">Actualizar datos</button>
     <span class="status" id="lastUpdate"></span>
   </div>
 </div>
@@ -64,9 +64,18 @@ tr:hover td{background:rgba(255,215,0,0.03)}
 var API = "https://script.google.com/macros/s/AKfycbwILis_7d5FpYpL4zAVmNtWGmB5P63WFHodzk9nFIg9_FPVFy-Nr9RsGnX8_00ZAceNUQ/exec";
 var AG = [];
 var VT = [];
-var selWeek = "all";
-var chartD = null;
-var chartB = null;
+var SELW = "todo";
+var CD = null;
+var CB = null;
+
+document.getElementById("btnRefresh").addEventListener("click", loadData);
+
+document.addEventListener("click", function(e) {
+  if (e.target && e.target.classList.contains("wt")) {
+    SELW = e.target.getAttribute("data-w");
+    render();
+  }
+});
 
 function loadData() {
   document.getElementById("lastUpdate").textContent = "Actualizando...";
@@ -93,9 +102,8 @@ function getWeeks() {
   var weeks = {};
   for (var i = 0; i < AG.length; i++) {
     var a = AG[i];
-    var f = a.fecha;
-    if (!f) continue;
-    var d = new Date(f);
+    if (!a.fecha) continue;
+    var d = new Date(a.fecha);
     if (isNaN(d)) continue;
     var day = d.getDay();
     var mon = new Date(d);
@@ -104,32 +112,29 @@ function getWeeks() {
     sun.setDate(mon.getDate() + 6);
     var key = mon.toISOString().slice(0,10);
     if (!weeks[key]) {
-      var ms = fmtD(mon);
-      var ss = fmtD(sun);
       var wn = getWeekNum(mon);
-      weeks[key] = { key: key, label: "Sem " + wn + " (" + ms + " - " + ss + ")", mon: mon, sun: sun };
+      weeks[key] = { key: key, label: "Sem " + wn + " (" + fmtD(mon) + " - " + fmtD(sun) + ")", mon: mon, sun: sun };
     }
   }
-  var arr = Object.values(weeks).sort(function(a,b){ return a.mon - b.mon; });
-  return arr;
+  return Object.values(weeks).sort(function(a,b){ return a.mon - b.mon; });
 }
 
 function fmtD(d) {
-  var months = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-  return d.getDate() + " " + months[d.getMonth()];
+  var mo = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  return d.getDate() + " " + mo[d.getMonth()];
 }
 
 function getWeekNum(d) {
-  var jan1 = new Date(d.getFullYear(), 0, 1);
-  return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  var j = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - j) / 86400000 + j.getDay() + 1) / 7);
 }
 
 function filterAG(ag) {
-  if (selWeek === "all") return ag;
-  var weeks = getWeeks();
+  if (SELW === "todo") return ag;
+  var wks = getWeeks();
   var w = null;
-  for (var i = 0; i < weeks.length; i++) {
-    if (weeks[i].key === selWeek) { w = weeks[i]; break; }
+  for (var i = 0; i < wks.length; i++) {
+    if (wks[i].key === SELW) { w = wks[i]; break; }
   }
   if (!w) return ag;
   return ag.filter(function(a) {
@@ -139,139 +144,126 @@ function filterAG(ag) {
   });
 }
 
-function badgeR(r) {
-  if (!r) return '<span class="b-seg">-</span>';
-  var rl = r.toLowerCase();
-  if (rl.indexOf("compro") > -1 || rl.indexOf("compra") > -1 || rl.indexOf("pago") > -1 || rl.indexOf("abono") > -1 || rl.indexOf("cuotas") > -1) {
-    return '<span class="b-ok">' + r + '</span>';
-  }
-  if (rl.indexOf("pendiente") > -1 || rl.indexOf("link") > -1) {
-    return '<span class="b-pend">' + r + '</span>';
-  }
-  if (rl.indexOf("no se present") > -1 || rl.indexOf("no tiene") > -1) {
-    return '<span class="b-neg">' + r + '</span>';
-  }
-  return '<span class="b-seg">' + r + '</span>';
-}
-
 function isVenta(r) {
   if (!r) return false;
   var rl = r.toLowerCase();
   return rl.indexOf("compro") > -1 || rl.indexOf("compra") > -1 || rl.indexOf("abono") > -1 || rl.indexOf("cuotas") > -1;
 }
 
+function badgeR(r) {
+  if (!r) return "<span class=b-seg>-</span>";
+  var rl = r.toLowerCase();
+  if (isVenta(r) || rl.indexOf("pago") > -1) return "<span class=b-ok>" + r + "</span>";
+  if (rl.indexOf("pendiente") > -1 || rl.indexOf("link") > -1) return "<span class=b-pend>" + r + "</span>";
+  if (rl.indexOf("no se present") > -1 || rl.indexOf("no tiene") > -1) return "<span class=b-neg>" + r + "</span>";
+  return "<span class=b-seg>" + r + "</span>";
+}
+
+function kpi(label, value, sub, rate, pct) {
+  var bar = pct > 0 ? "<div class=pb><div class=pf style='width:" + pct + "%'></div></div>" : "";
+  var rH = rate ? "<div class=ks>" + rate + "</div>" : "";
+  return "<div class=kpi><div class=kl>" + label + "</div><div class=kv>" + value + "</div><div class=ks>" + sub + "</div>" + rH + bar + "</div>";
+}
+
 function render() {
-  var weeks = getWeeks();
-  var filtered = filterAG(AG);
-  var total = filtered.length;
-  var presentes = filtered.filter(function(a){ return a.sePresento === "SI"; }).length;
-  var ventas = filtered.filter(function(a){ return isVenta(a.resultado); }).length;
-  var noShow = filtered.filter(function(a){ return a.sePresento === "NO"; }).length;
-  var showRate = total > 0 ? Math.round(presentes / total * 100) : 0;
-  var closeRate = presentes > 0 ? Math.round(ventas / presentes * 100) : 0;
+  var wks = getWeeks();
+  var fil = filterAG(AG);
+  var tot = fil.length;
+  var pres = fil.filter(function(a){ return a.sePresento === "SI"; }).length;
+  var vtas = fil.filter(function(a){ return isVenta(a.resultado); }).length;
+  var noS = fil.filter(function(a){ return a.sePresento === "NO"; }).length;
+  var sr = tot > 0 ? Math.round(pres / tot * 100) : 0;
+  var cr = pres > 0 ? Math.round(vtas / pres * 100) : 0;
 
-  var facTotal = 0;
+  var facTot = 0;
   for (var i = 0; i < VT.length; i++) {
-    var f = VT[i].facturacion || "";
-    var n = parseFloat(f.toString().replace(/[^0-9.]/g,"")) || 0;
-    facTotal += n;
+    var fv = (VT[i].facturacion || "").toString().replace(/[^0-9.]/g,"");
+    facTot += parseFloat(fv) || 0;
   }
 
-  var resultCounts = {};
-  for (var i = 0; i < filtered.length; i++) {
-    var r = filtered[i].resultado || "Sin resultado";
-    resultCounts[r] = (resultCounts[r] || 0) + 1;
+  var rC = {};
+  for (var i = 0; i < fil.length; i++) {
+    var r = fil[i].resultado || "Sin resultado";
+    rC[r] = (rC[r] || 0) + 1;
   }
 
-  var dayCounts = {};
-  var dayNames = ["Dom","Lun","Mar","Mie","Jue","Vie","Sab"];
-  for (var i = 0; i < filtered.length; i++) {
-    if (!filtered[i].fecha) continue;
-    var d = new Date(filtered[i].fecha);
-    if (isNaN(d)) continue;
-    var dn = dayNames[d.getDay()];
-    dayCounts[dn] = (dayCounts[dn] || 0) + 1;
+  var dC = {};
+  var dn = ["Dom","Lun","Mar","Mie","Jue","Vie","Sab"];
+  for (var i = 0; i < fil.length; i++) {
+    if (!fil[i].fecha) continue;
+    var dd = new Date(fil[i].fecha);
+    if (isNaN(dd)) continue;
+    var nm = dn[dd.getDay()];
+    dC[nm] = (dC[nm] || 0) + 1;
   }
 
-  var tabsHTML = '<div class="wbox"><h3>Filtrar por semana</h3><div class="wtabs">';
-  tabsHTML += '<button class="wt ' + (selWeek === "all" ? "on" : "") + '" onclick="setWeek('all')">Todo el periodo</button>';
-  for (var i = 0; i < weeks.length; i++) {
-    var w = weeks[i];
-    tabsHTML += '<button class="wt ' + (selWeek === w.key ? "on" : "") + '" onclick="setWeek('' + w.key + '')">' + w.label + '</button>';
+  var tH = "<div class=wbox><h3>Filtrar por semana</h3><div class=wtabs>";
+  tH += "<button class='wt" + (SELW === "todo" ? " on" : "") + "' data-w=todo>Todo el periodo</button>";
+  for (var i = 0; i < wks.length; i++) {
+    tH += "<button class='wt" + (SELW === wks[i].key ? " on" : "") + "' data-w=" + wks[i].key + ">" + wks[i].label + "</button>";
   }
-  tabsHTML += '</div></div>';
+  tH += "</div></div>";
 
-  var kpiHTML = '<div class="grid5">';
-  kpiHTML += kpi("Agendas Totales", total, "calendario", "", 0);
-  kpiHTML += kpi("Se Presentaron", presentes, "de " + total + " agendas", showRate + "% show rate", showRate);
-  kpiHTML += kpi("Ventas Cerradas", ventas, "de " + presentes + " presentes", closeRate + "% close rate", closeRate);
-  kpiHTML += kpi("No Shows", noShow, "no se presentaron", "", 0);
-  var facStr = facTotal > 0 ? "$" + facTotal.toLocaleString("es-AR") : VT.length + " ventas";
-  kpiHTML += kpi("Facturacion", facStr, "ventas totales del periodo", "", 0);
-  kpiHTML += '</div>';
+  var kH = "<div class=grid5>";
+  kH += kpi("Agendas Totales", tot, "agendas registradas", "", 0);
+  kH += kpi("Se Presentaron", pres, "de " + tot + " agendas", sr + "% show rate", sr);
+  kH += kpi("Ventas Cerradas", vtas, "de " + pres + " presentes", cr + "% close rate", cr);
+  kH += kpi("No Shows", noS, "no se presentaron", "", 0);
+  var fS = facTot > 0 ? "$" + Math.round(facTot).toLocaleString("es-AR") : VT.length + " ventas";
+  kH += kpi("Facturacion", fS, "ventas del periodo", "", 0);
+  kH += "</div>";
 
-  var rLabels = Object.keys(resultCounts);
-  var rData = rLabels.map(function(k){ return resultCounts[k]; });
-  var rColors = ["#ffd700","#ff8800","#00c864","#6496ff","#ff6060","#c800ff","#00d4ff","#ff4488","#88ff00","#ffcc00"];
+  var rL = Object.keys(rC);
+  var rD = rL.map(function(k){ return rC[k]; });
+  var rCol = ["#ffd700","#ff8800","#00c864","#6496ff","#ff6060","#c800ff","#00d4ff","#ff4488","#88ff00","#ffcc00"];
 
-  var dLabels = Object.keys(dayCounts);
-  var dData = dLabels.map(function(k){ return dayCounts[k]; });
+  var dL = Object.keys(dC);
+  var dD = dL.map(function(k){ return dC[k]; });
 
-  var chartsHTML = '<div class="r2">';
-  chartsHTML += '<div class="card"><h3>Resultados de Agenda</h3><canvas id="chartD" height="220"></canvas></div>';
-  chartsHTML += '<div class="card"><h3>Agendas por Dia</h3><canvas id="chartB" height="220"></canvas></div>';
-  chartsHTML += '</div>';
+  var cH = "<div class=r2>";
+  cH += "<div class=card><h3>Resultados de Agenda</h3><canvas id=chartD height=220></canvas></div>";
+  cH += "<div class=card><h3>Agendas por Dia</h3><canvas id=chartB height=220></canvas></div>";
+  cH += "</div>";
 
-  var agHTML = '<div class="wbox"><h3>Detalle de Agendas</h3><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>Fecha</th><th>Hora</th><th>Closer</th><th>Presento</th><th>Resultado</th></tr></thead><tbody>';
-  for (var i = 0; i < filtered.length; i++) {
-    var a = filtered[i];
+  var aH = "<div class=wbox><h3>Detalle de Agendas</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha</th><th>Hora</th><th>Closer</th><th>Presento</th><th>Resultado</th></tr></thead><tbody>";
+  for (var i = 0; i < fil.length; i++) {
+    var a = fil[i];
     var fp = a.fecha ? a.fecha.slice(0,10) : "-";
-    var sp = a.sePresento === "SI" ? '<span class="b-si">SI</span>' : (a.sePresento === "NO" ? '<span class="b-no">NO</span>' : '<span class="b-seg">-</span>');
-    agHTML += '<tr><td>' + (a.nombre || "-") + '</td><td>' + fp + '</td><td>' + (a.hora || "-") + '</td><td>' + (a.closer || "-") + '</td><td>' + sp + '</td><td>' + badgeR(a.resultado) + '</td></tr>';
+    var sp = a.sePresento === "SI" ? "<span class=b-si>SI</span>" : (a.sePresento === "NO" ? "<span class=b-no>NO</span>" : "<span class=b-seg>-</span>");
+    aH += "<tr><td>" + (a.nombre||"-") + "</td><td>" + fp + "</td><td>" + (a.hora||"-") + "</td><td>" + (a.closer||"-") + "</td><td>" + sp + "</td><td>" + badgeR(a.resultado) + "</td></tr>";
   }
-  agHTML += '</tbody></table></div></div>';
+  aH += "</tbody></table></div></div>";
 
-  var vtHTML = '<div class="wbox"><h3>Ventas Cerradas</h3><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>Fecha Pago</th><th>Closer</th><th>Setter</th><th>Programa</th><th>Plan</th><th>Facturacion</th></tr></thead><tbody>';
+  var vH = "<div class=wbox><h3>Ventas Cerradas</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha Pago</th><th>Closer</th><th>Setter</th><th>Programa</th><th>Plan</th><th>Facturacion</th></tr></thead><tbody>";
   for (var i = 0; i < VT.length; i++) {
     var v = VT[i];
-    var fv = v.fechaPago ? v.fechaPago.slice(0,10) : "-";
-    vtHTML += '<tr><td>' + (v.nombre || "-") + '</td><td>' + fv + '</td><td>' + (v.closer || "-") + '</td><td>' + (v.setter || "-") + '</td><td>' + (v.programa || "-") + '</td><td>' + (v.plan || "-") + '</td><td>' + (v.facturacion || "-") + '</td></tr>';
+    var fp2 = v.fechaPago ? v.fechaPago.slice(0,10) : "-";
+    vH += "<tr><td>" + (v.nombre||"-") + "</td><td>" + fp2 + "</td><td>" + (v.closer||"-") + "</td><td>" + (v.setter||"-") + "</td><td>" + (v.programa||"-") + "</td><td>" + (v.plan||"-") + "</td><td>" + (v.facturacion||"-") + "</td></tr>";
   }
-  vtHTML += '</tbody></table></div></div>';
+  vH += "</tbody></table></div></div>";
 
-  document.getElementById("app").innerHTML = tabsHTML + kpiHTML + chartsHTML + agHTML + vtHTML;
+  document.getElementById("app").innerHTML = tH + kH + cH + aH + vH;
 
-  if (chartD) { chartD.destroy(); }
-  if (chartB) { chartB.destroy(); }
+  if (CD) { CD.destroy(); CD = null; }
+  if (CB) { CB.destroy(); CB = null; }
 
-  var ctxD = document.getElementById("chartD");
-  if (ctxD && rLabels.length > 0) {
-    chartD = new Chart(ctxD, {
+  var eD = document.getElementById("chartD");
+  if (eD && rL.length > 0) {
+    CD = new Chart(eD, {
       type: "doughnut",
-      data: { labels: rLabels, datasets: [{ data: rData, backgroundColor: rColors, borderWidth: 2, borderColor: "#0a0a15" }] },
+      data: { labels: rL, datasets: [{ data: rD, backgroundColor: rCol, borderWidth: 2, borderColor: "#0a0a15" }] },
       options: { plugins: { legend: { labels: { color: "#888", font: { size: 11 } } } }, cutout: "65%" }
     });
   }
 
-  var ctxB = document.getElementById("chartB");
-  if (ctxB && dLabels.length > 0) {
-    chartB = new Chart(ctxB, {
+  var eB = document.getElementById("chartB");
+  if (eB && dL.length > 0) {
+    CB = new Chart(eB, {
       type: "bar",
-      data: { labels: dLabels, datasets: [{ label: "Agendas", data: dData, backgroundColor: "rgba(255,215,0,0.7)", borderRadius: 6 }] },
+      data: { labels: dL, datasets: [{ label: "Agendas", data: dD, backgroundColor: "rgba(255,215,0,0.7)", borderRadius: 6 }] },
       options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#888" }, grid: { color: "#1e1e38" } }, y: { ticks: { color: "#888" }, grid: { color: "#1e1e38" }, beginAtZero: true } } }
     });
   }
-}
-
-function kpi(label, value, sub, rate, pct) {
-  var bar = pct > 0 ? '<div class="pb"><div class="pf" style="width:' + pct + '%"></div></div>' : "";
-  var rateH = rate ? '<div class="ks">' + rate + '</div>' : "";
-  return '<div class="kpi"><div class="kl">' + label + '</div><div class="kv">' + value + '</div><div class="ks">' + sub + '</div>' + rateH + bar + '</div>';
-}
-
-function setWeek(k) {
-  selWeek = k;
-  render();
 }
 
 loadData();
