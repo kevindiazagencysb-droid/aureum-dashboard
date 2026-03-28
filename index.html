@@ -43,6 +43,7 @@ tr:hover td{background:rgba(255,215,0,0.03)}
 .refresh-btn:hover{opacity:0.85}
 .status{font-size:11px;color:#555;margin-left:12px}
 .loading{text-align:center;padding:60px;color:#555;font-size:14px}
+.note{font-size:10px;color:#333;margin-top:6px;font-style:italic}
 @media(max-width:700px){.r2{grid-template-columns:1fr}}
 </style>
 </head>
@@ -98,18 +99,28 @@ function onData(data) {
   render();
 }
 
+function parseDate(str) {
+  if (!str) return null;
+  if (str instanceof Date) return str;
+  var s = str.toString().trim();
+  var d = new Date(s);
+  if (!isNaN(d)) return d;
+  return null;
+}
+
 function getWeeks() {
   var weeks = {};
   for (var i = 0; i < AG.length; i++) {
     var a = AG[i];
-    if (!a.fecha) continue;
-    var d = new Date(a.fecha);
-    if (isNaN(d)) continue;
+    var d = parseDate(a.fecha);
+    if (!d) continue;
     var day = d.getDay();
     var mon = new Date(d);
     mon.setDate(d.getDate() - ((day === 0 ? 7 : day) - 1));
+    mon.setHours(0,0,0,0);
     var sun = new Date(mon);
     sun.setDate(mon.getDate() + 6);
+    sun.setHours(23,59,59,999);
     var key = mon.toISOString().slice(0,10);
     if (!weeks[key]) {
       var wn = getWeekNum(mon);
@@ -138,8 +149,8 @@ function filterAG(ag) {
   }
   if (!w) return ag;
   return ag.filter(function(a) {
-    if (!a.fecha) return false;
-    var d = new Date(a.fecha);
+    var d = parseDate(a.fecha);
+    if (!d) return false;
     return d >= w.mon && d <= w.sun;
   });
 }
@@ -170,8 +181,8 @@ function render() {
   var fil = filterAG(AG);
   var tot = fil.length;
   var pres = fil.filter(function(a){ return a.sePresento === "SI"; }).length;
-  var vtas = fil.filter(function(a){ return isVenta(a.resultado); }).length;
   var noS = fil.filter(function(a){ return a.sePresento === "NO"; }).length;
+  var vtas = fil.filter(function(a){ return isVenta(a.resultado); }).length;
   var sr = tot > 0 ? Math.round(pres / tot * 100) : 0;
   var cr = pres > 0 ? Math.round(vtas / pres * 100) : 0;
 
@@ -190,14 +201,13 @@ function render() {
   var dC = {};
   var dn = ["Dom","Lun","Mar","Mie","Jue","Vie","Sab"];
   for (var i = 0; i < fil.length; i++) {
-    if (!fil[i].fecha) continue;
-    var dd = new Date(fil[i].fecha);
-    if (isNaN(dd)) continue;
+    var dd = parseDate(fil[i].fecha);
+    if (!dd) continue;
     var nm = dn[dd.getDay()];
     dC[nm] = (dC[nm] || 0) + 1;
   }
 
-  var tH = "<div class=wbox><h3>Filtrar por semana</h3><div class=wtabs>";
+  var tH = "<div class=wbox><h3>Filtrar por semana (fecha de la cita)</h3><div class=wtabs>";
   tH += "<button class='wt" + (SELW === "todo" ? " on" : "") + "' data-w=todo>Todo el periodo</button>";
   for (var i = 0; i < wks.length; i++) {
     tH += "<button class='wt" + (SELW === wks[i].key ? " on" : "") + "' data-w=" + wks[i].key + ">" + wks[i].label + "</button>";
@@ -205,10 +215,10 @@ function render() {
   tH += "</div></div>";
 
   var kH = "<div class=grid5>";
-  kH += kpi("Agendas Totales", tot, "agendas registradas", "", 0);
+  kH += kpi("Agendas Totales", tot, "con SI o NO registrado", "", 0);
   kH += kpi("Se Presentaron", pres, "de " + tot + " agendas", sr + "% show rate", sr);
+  kH += kpi("No Shows", noS, "no se presentaron", (100-sr) + "% no show rate", 100-sr);
   kH += kpi("Ventas Cerradas", vtas, "de " + pres + " presentes", cr + "% close rate", cr);
-  kH += kpi("No Shows", noS, "no se presentaron", "", 0);
   var fS = facTot > 0 ? "$" + Math.round(facTot).toLocaleString("es-AR") : VT.length + " ventas";
   kH += kpi("Facturacion", fS, "ventas del periodo", "", 0);
   kH += "</div>";
@@ -216,20 +226,19 @@ function render() {
   var rL = Object.keys(rC);
   var rD = rL.map(function(k){ return rC[k]; });
   var rCol = ["#ffd700","#ff8800","#00c864","#6496ff","#ff6060","#c800ff","#00d4ff","#ff4488","#88ff00","#ffcc00"];
-
   var dL = Object.keys(dC);
   var dD = dL.map(function(k){ return dC[k]; });
 
   var cH = "<div class=r2>";
   cH += "<div class=card><h3>Resultados de Agenda</h3><canvas id=chartD height=220></canvas></div>";
-  cH += "<div class=card><h3>Agendas por Dia</h3><canvas id=chartB height=220></canvas></div>";
+  cH += "<div class=card><h3>Agendas por Dia (fecha cita)</h3><canvas id=chartB height=220></canvas></div>";
   cH += "</div>";
 
-  var aH = "<div class=wbox><h3>Detalle de Agendas</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha</th><th>Hora</th><th>Closer</th><th>Presento</th><th>Resultado</th></tr></thead><tbody>";
+  var aH = "<div class=wbox><h3>Detalle de Agendas</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha Cita</th><th>Hora</th><th>Closer</th><th>Presento</th><th>Resultado</th></tr></thead><tbody>";
   for (var i = 0; i < fil.length; i++) {
     var a = fil[i];
     var fp = a.fecha ? a.fecha.slice(0,10) : "-";
-    var sp = a.sePresento === "SI" ? "<span class=b-si>SI</span>" : (a.sePresento === "NO" ? "<span class=b-no>NO</span>" : "<span class=b-seg>-</span>");
+    var sp = a.sePresento === "SI" ? "<span class=b-si>SI</span>" : "<span class=b-no>NO</span>";
     aH += "<tr><td>" + (a.nombre||"-") + "</td><td>" + fp + "</td><td>" + (a.hora||"-") + "</td><td>" + (a.closer||"-") + "</td><td>" + sp + "</td><td>" + badgeR(a.resultado) + "</td></tr>";
   }
   aH += "</tbody></table></div></div>";
