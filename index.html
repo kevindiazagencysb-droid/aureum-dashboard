@@ -8,16 +8,15 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0a15;color:#e0e0e0;min-height:100vh}
-.header{background:linear-gradient(135deg,#12122a,#1a1a35);padding:20px 32px;border-bottom:2px solid #ffd70033;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.logo{font-size:26px;font-weight:900;background:linear-gradient(90deg,#ffd700,#ffaa00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header{background:linear-gradient(135deg,#12122a,#1a1a35);padding:20px 32px;border-bottom:2px solid rgba(255,215,0,0.2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.logo{font-size:26px;font-weight:900;color:#ffd700}
 .sub{font-size:11px;color:#555;margin-top:4px;letter-spacing:1px;text-transform:uppercase}
 .container{max-width:1440px;margin:0 auto;padding:24px 20px}
-.wbox{background:#12122a;border:1px solid #ffd70033;border-radius:14px;padding:20px;margin-bottom:24px}
+.wbox{background:#12122a;border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:20px;margin-bottom:24px}
 .wbox h3{color:#ffd700;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}
 .wtabs{display:flex;flex-wrap:wrap;gap:8px}
 .wt{padding:8px 18px;border-radius:30px;border:1px solid #2a2a4a;background:transparent;color:#888;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s}
-.wt:hover{border-color:#ffd700;color:#ffd700}
-.wt.on{background:linear-gradient(90deg,#ffd700,#ffaa00);color:#0a0a15;border-color:transparent;font-weight:800}
+.wt:hover,.wt.on{background:linear-gradient(90deg,#ffd700,#ffaa00);color:#0a0a15;border-color:transparent;font-weight:800}
 .grid5{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:24px}
 .kpi{background:#12122a;border:1px solid #1e1e38;border-radius:14px;padding:22px 20px;position:relative;overflow:hidden;transition:transform .2s}
 .kpi:hover{transform:translateY(-2px)}
@@ -34,14 +33,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0a15;color:#e0e0e0;mi
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{font-size:10px;color:#444;text-transform:uppercase;letter-spacing:1px;padding:10px 14px;border-bottom:1px solid #1e1e38;text-align:left;font-weight:600}
 td{padding:11px 14px;border-bottom:1px solid #0f0f22;vertical-align:middle}
-tr:hover td{background:#ffffff04}
+tr:hover td{background:rgba(255,255,255,0.02)}
 .b{display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
-.b-si{background:#00c85114;color:#00c851;border:1px solid #00c85130}
-.b-no{background:#ff445514;color:#ff4455;border:1px solid #ff445530}
-.b-buy{background:#ffd70014;color:#ffd700;border:1px solid #ffd70030}
-.b-pd{background:#ff880014;color:#ff8800;border:1px solid #ff880030}
-.b-ns{background:#ff445510;color:#cc3344;border:1px solid #ff445520}
-.b-ot{background:#33333320;color:#777;border:1px solid #33333340}
+.b-si{background:rgba(0,200,81,0.1);color:#00c851;border:1px solid rgba(0,200,81,0.2)}
+.b-no{background:rgba(255,68,85,0.1);color:#ff4455;border:1px solid rgba(255,68,85,0.2)}
+.b-buy{background:rgba(255,215,0,0.1);color:#ffd700;border:1px solid rgba(255,215,0,0.2)}
+.b-pd{background:rgba(255,136,0,0.1);color:#ff8800;border:1px solid rgba(255,136,0,0.2)}
+.b-ns{background:rgba(255,68,85,0.07);color:#cc3344;border:1px solid rgba(255,68,85,0.12)}
+.b-ot{background:rgba(80,80,80,0.2);color:#777;border:1px solid rgba(80,80,80,0.3)}
 @media(max-width:900px){.r2{grid-template-columns:1fr}.grid5{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -49,142 +48,146 @@ tr:hover td{background:#ffffff04}
 <div class="header">
   <div>
     <div class="logo">&#9889; AUREUM</div>
-    <div class="sub">Dashboard de Agendas &amp; Ventas &#183; Evergreen</div>
+    <div class="sub">Dashboard de Agendas &amp; Ventas - Evergreen</div>
   </div>
   <div id="ts" style="font-size:11px;color:#333"></div>
 </div>
 <div class="container">
   <div class="wbox">
-    <h3>&#128197; Seleccionar Semana</h3>
+    <h3>Seleccionar Semana</h3>
     <div class="wtabs" id="tabs"></div>
   </div>
   <div class="grid5" id="kpis"></div>
   <div class="r2">
-    <div class="card" style="margin-bottom:0"><h3>Resultados</h3><div class="ch"><canvas id="cR"></canvas></div></div>
-    <div class="card" style="margin-bottom:0"><h3>Agendas por D&#237;a</h3><div class="ch"><canvas id="cD"></canvas></div></div>
+    <div class="card" style="margin-bottom:0"><h3>Resultados de Agenda</h3><div class="ch"><canvas id="cR"></canvas></div></div>
+    <div class="card" style="margin-bottom:0"><h3>Agendas por Dia</h3><div class="ch"><canvas id="cD"></canvas></div></div>
   </div>
-  <div style="margin-top:24px" class="card">
-    <h3>&#128203; Detalle de Agendas</h3>
+  <div class="card" style="margin-top:24px">
+    <h3>Detalle de Agendas</h3>
     <div style="overflow-x:auto">
       <table><thead><tr><th>Nombre</th><th>Fecha</th><th>Hora</th><th>Closer</th><th>Pres.</th><th>Resultado</th></tr></thead>
       <tbody id="tA"></tbody></table>
     </div>
   </div>
   <div class="card">
-    <h3>&#128176; Ventas Cerradas</h3>
+    <h3>Ventas Cerradas</h3>
     <div style="overflow-x:auto">
-      <table><thead><tr><th>Nombre</th><th>Fecha</th><th>Closer</th><th>Setter</th><th>Programa</th><th>Plan</th><th>Facturaci&#243;n</th></tr></thead>
+      <table><thead><tr><th>Nombre</th><th>Fecha</th><th>Closer</th><th>Setter</th><th>Programa</th><th>Plan</th><th>Facturacion</th></tr></thead>
       <tbody id="tV"></tbody></table>
     </div>
   </div>
 </div>
 <script>
-const AG=[
-  {n:"Gonzalo Feser",f:"12 Mar",h:"10:00",cl:"Agust&#237;n",p:"NO",r:"Repetida",w:11},
-  {n:"Ricardo Jos&#233; Chiementin",f:"12 Mar",h:"10:30",cl:"Agust&#237;n",p:"SI",r:"Compr&#243; 1 pago $1193",w:11},
-  {n:"Francisco Valderrama",f:"12 Mar",h:"11:30",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Diego Justet",f:"12 Mar",h:"12:30",cl:"Agust&#237;n",p:"SI",r:"Compr&#243; 3 pagos $500",w:11},
-  {n:"Ver&#243;nica Williams",f:"12 Mar",h:"16:00",cl:"Agust&#237;n",p:"SI",r:"Abono reserva $100",w:11},
-  {n:"Santiago",f:"12 Mar",h:"20:00",cl:"Agust&#237;n",p:"SI",r:"Atendi&#243; - Seguimiento Wpp",w:11},
-  {n:"Carlos Lolaverry",f:"13 Mar",h:"10:30",cl:"Agust&#237;n",p:"SI",r:"Pendiente - Seguimiento Wpp",w:11},
-  {n:"Fernando Gatto",f:"13 Mar",h:"12:00",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Lautaro Fr&#237;as",f:"13 Mar",h:"15:00",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Franco Dario Ramirez",f:"13 Mar",h:"16:00",cl:"Agust&#237;n",p:"SI",r:"Atendi&#243; - Seguimiento Wpp",w:11},
-  {n:"Gustavo Alegre",f:"13 Mar",h:"16:30",cl:"Agust&#237;n",p:"SI",r:"Atendi&#243; - Seguimiento Wpp",w:11},
-  {n:"Jose Alexander Rangel",f:"13 Mar",h:"16:30",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Emilio Andr&#233;s Almanza",f:"13 Mar",h:"20:00",cl:"Agust&#237;n",p:"SI",r:"No tiene dinero",w:11},
-  {n:"Luis Garc&#237;a",f:"14 Mar",h:"11:30",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Marcelo Ariel Baez",f:"14 Mar",h:"15:30",cl:"Agust&#237;n",p:"SI",r:"No tiene dinero",w:11},
-  {n:"Italotest Test",f:"14 Mar",h:"",cl:"Agust&#237;n",p:"NO",r:"",w:11},
-  {n:"Fernando Gatto",f:"14 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Pendiente - Seguimiento Wpp",w:11},
-  {n:"Sergio Villanueva",f:"14 Mar",h:"",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Dito Gonzalez",f:"14 Mar",h:"",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Katerine Plasencia",f:"14 Mar",h:"",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Dario Barberan",f:"15 Mar",h:"",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Leandro Quintana",f:"15 Mar",h:"",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Marco Vocaturo",f:"15 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Pendiente - Seguimiento Wpp",w:11},
-  {n:"Aldo Soloaga",f:"15 Mar",h:"",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Luis Pablo Garc&#237;a",f:"15 Mar",h:"",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:11},
-  {n:"Gast&#243;n Sequeira",f:"16 Mar",h:"12:00",cl:"Agust&#237;n",p:"NO",r:"Pendiente - Seguimiento Wpp",w:11},
-  {n:"Jos&#233; Alexander Rangel",f:"16 Mar",h:"15:30",cl:"Agust&#237;n",p:"SI",r:"Pendiente - Link de pago enviado",w:11},
-  {n:"Juan Perdomo",f:"16 Mar",h:"15:00",cl:"Agust&#237;n",p:"SI",r:"Compr&#243; 1 pago $1500",w:11},
-  {n:"Gonzalo Corrales",f:"16 Mar",h:"10:30",cl:"Agust&#237;n",p:"SI",r:"Pendiente - Link de pago enviado",w:11},
-  {n:"Fabio Della Pace",f:"16 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Compr&#243; 1 pago $1500",w:11},
-  {n:"Jhon Fredy Henao",f:"17 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Atendi&#243; - Seguimiento Wpp",w:12},
-  {n:"Diego Cuello",f:"17 Mar",h:"",cl:"Agust&#237;n",p:"NO",r:"No se present&#243;",w:12},
-  {n:"Victor Arrutti",f:"18 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Compr&#243; 2 cuotas $750",w:12},
-  {n:"Facundo Ferreyra",f:"18 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Atendi&#243; - Seguimiento Wpp",w:12},
-  {n:"Aldo Gustavo Soloaga",f:"18 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Compr&#243; 2 cuotas $750",w:12},
-  {n:"Fabio Ariel Della Pace",f:"20 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Compr&#243; 1 pago $1500",w:12},
-  {n:"Fernando Gatto",f:"20 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Compr&#243; 3 pagos $500",w:12},
-  {n:"Eric Dami&#225;n Kostoff",f:"20 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Compr&#243; 3 pagos $500",w:12},
-  {n:"Marco Vinicio Vocaturo",f:"21 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Abono reserva $500",w:12},
-  {n:"Omar Dario Liva",f:"24 Mar",h:"",cl:"Agust&#237;n",p:"SI",r:"Compr&#243; 1 pago $1500",w:13},
-  {n:"Darickson C&#225;ceres Mellado",f:"27 Mar",h:"15:30",cl:"",p:"",r:"Pendiente",w:13},
+var AG=[
+  {n:"Gonzalo Feser",f:"12 Mar",h:"10:00",cl:"Agustin",p:"NO",r:"Repetida",w:11},
+  {n:"Ricardo Jose Chiementin",f:"12 Mar",h:"10:30",cl:"Agustin",p:"SI",r:"Compro 1 pago $1193",w:11},
+  {n:"Francisco Valderrama",f:"12 Mar",h:"11:30",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Diego Justet",f:"12 Mar",h:"12:30",cl:"Agustin",p:"SI",r:"Compro 3 pagos $500",w:11},
+  {n:"Veronica Williams",f:"12 Mar",h:"16:00",cl:"Agustin",p:"SI",r:"Abono reserva $100",w:11},
+  {n:"Santiago",f:"12 Mar",h:"20:00",cl:"Agustin",p:"SI",r:"Atendio - Seguimiento Wpp",w:11},
+  {n:"Carlos Lolaverry",f:"13 Mar",h:"10:30",cl:"Agustin",p:"SI",r:"Pendiente - Seguimiento Wpp",w:11},
+  {n:"Fernando Gatto",f:"13 Mar",h:"12:00",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Lautaro Frias",f:"13 Mar",h:"15:00",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Franco Dario Ramirez",f:"13 Mar",h:"16:00",cl:"Agustin",p:"SI",r:"Atendio - Seguimiento Wpp",w:11},
+  {n:"Gustavo Alegre",f:"13 Mar",h:"16:30",cl:"Agustin",p:"SI",r:"Atendio - Seguimiento Wpp",w:11},
+  {n:"Jose Alexander Rangel",f:"13 Mar",h:"16:30",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Emilio Andres Almanza",f:"13 Mar",h:"20:00",cl:"Agustin",p:"SI",r:"No tiene dinero",w:11},
+  {n:"Luis Garcia",f:"14 Mar",h:"11:30",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Marcelo Ariel Baez",f:"14 Mar",h:"15:30",cl:"Agustin",p:"SI",r:"No tiene dinero",w:11},
+  {n:"Fernando Gatto",f:"14 Mar",h:"",cl:"Agustin",p:"SI",r:"Pendiente - Seguimiento Wpp",w:11},
+  {n:"Sergio Villanueva",f:"14 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Dito Gonzalez",f:"14 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Katerine Plasencia",f:"14 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Dario Barberan",f:"15 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Leandro Quintana",f:"15 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Marco Vocaturo",f:"15 Mar",h:"",cl:"Agustin",p:"SI",r:"Pendiente - Seguimiento Wpp",w:11},
+  {n:"Aldo Soloaga",f:"15 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Luis Pablo Garcia",f:"15 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
+  {n:"Gaston Sequeira",f:"16 Mar",h:"12:00",cl:"Agustin",p:"NO",r:"Pendiente - Seguimiento Wpp",w:11},
+  {n:"Jose Alexander Rangel",f:"16 Mar",h:"15:30",cl:"Agustin",p:"SI",r:"Pendiente - Link de pago enviado",w:11},
+  {n:"Juan Perdomo",f:"16 Mar",h:"15:00",cl:"Agustin",p:"SI",r:"Compro 1 pago $1500",w:11},
+  {n:"Gonzalo Corrales",f:"16 Mar",h:"10:30",cl:"Agustin",p:"SI",r:"Pendiente - Link de pago enviado",w:11},
+  {n:"Fabio Della Pace",f:"16 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 1 pago $1500",w:11},
+  {n:"Jhon Fredy Henao",f:"17 Mar",h:"",cl:"Agustin",p:"SI",r:"Atendio - Seguimiento Wpp",w:12},
+  {n:"Diego Cuello",f:"17 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:12},
+  {n:"Victor Arrutti",f:"18 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 2 cuotas $750",w:12},
+  {n:"Facundo Ferreyra",f:"18 Mar",h:"",cl:"Agustin",p:"SI",r:"Atendio - Seguimiento Wpp",w:12},
+  {n:"Aldo Gustavo Soloaga",f:"18 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 2 cuotas $750",w:12},
+  {n:"Fabio Ariel Della Pace",f:"20 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 1 pago $1500",w:12},
+  {n:"Fernando Gatto",f:"20 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 3 pagos $500",w:12},
+  {n:"Eric Damian Kostoff",f:"20 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 3 pagos $500",w:12},
+  {n:"Marco Vinicio Vocaturo",f:"21 Mar",h:"",cl:"Agustin",p:"SI",r:"Abono reserva $500",w:12},
+  {n:"Omar Dario Liva",f:"24 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 1 pago $1500",w:13},
+  {n:"Darickson Caceres Mellado",f:"27 Mar",h:"15:30",cl:"",p:"",r:"Pendiente",w:13},
   {n:"Rogelio Ricardo Lobos",f:"27 Mar",h:"18:00",cl:"",p:"",r:"Pendiente",w:13},
-  {n:"Bel&#233;n Arce",f:"27 Mar",h:"19:15",cl:"",p:"",r:"Pendiente",w:13},
+  {n:"Belen Arce",f:"27 Mar",h:"19:15",cl:"",p:"",r:"Pendiente",w:13},
   {n:"Walter Castro",f:"27 Mar",h:"20:15",cl:"",p:"",r:"Pendiente",w:13}
 ];
-const VN=[
-  {n:"Ricardo Jos&#233; Chiementin",f:"12/03",cl:"Agust&#237;n",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1193",fa:1193,w:11},
-  {n:"Diego Justet",f:"12/03",cl:"Agust&#237;n",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 500",fa:1500,w:11},
-  {n:"Ver&#243;nica Williams",f:"12/03",cl:"Agust&#237;n",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:11},
-  {n:"Juan Pablo Perdomo",f:"16/03",cl:"Agust&#237;n",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:11},
-  {n:"Aldo Gustavo Soloaga",f:"18/03",cl:"Agust&#237;n",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 750",fa:1500,w:12},
-  {n:"Fabio Ariel Della Pace",f:"20/03",cl:"Agust&#237;n",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:12},
-  {n:"Fernando Gatto",f:"20/03",cl:"Agust&#237;n",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 500",fa:1500,w:12},
-  {n:"Eric Dami&#225;n Kostoff",f:"20/03",cl:"Agust&#237;n",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 500",fa:1500,w:12},
-  {n:"Marco Vinicio Vocaturo",f:"21/03",cl:"Agust&#237;n",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:12},
-  {n:"Omar Dario Liva",f:"24/03",cl:"Agust&#237;n",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:13}
+var VN=[
+  {n:"Ricardo Jose Chiementin",f:"12/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1193",fa:1193,w:11},
+  {n:"Diego Justet",f:"12/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 500",fa:1500,w:11},
+  {n:"Veronica Williams",f:"12/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:11},
+  {n:"Juan Pablo Perdomo",f:"16/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:11},
+  {n:"Aldo Gustavo Soloaga",f:"18/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 750",fa:1500,w:12},
+  {n:"Fabio Ariel Della Pace",f:"20/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:12},
+  {n:"Fernando Gatto",f:"20/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 500",fa:1500,w:12},
+  {n:"Eric Damian Kostoff",f:"20/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 500",fa:1500,w:12},
+  {n:"Marco Vinicio Vocaturo",f:"21/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:12},
+  {n:"Omar Dario Liva",f:"24/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:13}
 ];
-const WL={11:"Sem 11 (10-16 Mar)",12:"Sem 12 (17-23 Mar)",13:"Sem 13 (24-30 Mar)"};
-let sel="all",cR=null,cD=null;
+var WL={11:"Sem 11 (10-16 Mar)",12:"Sem 12 (17-23 Mar)",13:"Sem 13 (24-30 Mar)"};
+var sel="all",cR=null,cD=null;
 function bd(r){
-  if(!r)return'<span class="b b-ot">&#8212;</span>';
-  const l=r.toLowerCase();
-  if(l.includes("compr")||l.includes("abono"))return'<span class="b b-buy">&#128176; '+r+'</span>';
-  if(l.includes("no se present"))return'<span class="b b-ns">&#128683; No se present&#243;</span>';
-  if(l.includes("pendiente")||l.includes("seguimiento")||l.includes("link"))return'<span class="b b-pd">&#8987; '+r+'</span>';
-  if(l.includes("no tiene"))return'<span class="b b-no">&#10060; Sin presupuesto</span>';
-  if(l.includes("repetida"))return'<span class="b b-ot">&#128260; Repetida</span>';
+  if(!r)return'<span class="b b-ot">-</span>';
+  var l=r.toLowerCase();
+  if(l.indexOf("compro")>-1||l.indexOf("abono")>-1)return'<span class="b b-buy">$ '+r+'</span>';
+  if(l.indexOf("no se presento")>-1)return'<span class="b b-ns">No se presento</span>';
+  if(l.indexOf("pendiente")>-1||l.indexOf("seguimiento")>-1||l.indexOf("link")>-1)return'<span class="b b-pd">'+r+'</span>';
+  if(l.indexOf("no tiene")>-1)return'<span class="b b-no">Sin presupuesto</span>';
+  if(l.indexOf("repetida")>-1)return'<span class="b b-ot">Repetida</span>';
   return'<span class="b b-ot">'+r+'</span>';
 }
-function fg(){return sel==="all"?AG:AG.filter(a=>a.w===+sel);}
-function fv(){return sel==="all"?VN:VN.filter(v=>v.w===+sel);}
-function tabs(){
-  let h='<div class="wt '+(sel==="all"?"on":"")+'" onclick="pick('all')">&#128202; Todo el per&#237;odo</div>';
-  Object.entries(WL).forEach(([k,v])=>{h+='<div class="wt '+(sel===k?"on":"")+'" onclick="pick(''+k+'')">'+v+'</div>';});
+function fg(){return sel==="all"?AG:AG.filter(function(a){return a.w===+sel;});}
+function fv(){return sel==="all"?VN:VN.filter(function(v){return v.w===+sel;});}
+function renderTabs(){
+  var h='<div class="wt '+(sel==="all"?"on":"")+'" onclick="pick('all')">Todo el periodo</div>';
+  Object.keys(WL).forEach(function(k){h+='<div class="wt '+(sel===k?"on":"")+'" onclick="pick(''+k+'')">'+WL[k]+'</div>';});
   document.getElementById("tabs").innerHTML=h;
 }
-function pick(w){sel=w;tabs();render();}
-function kpi(i,l,v,s,p,b){return'<div class="kpi"><div class="kl">'+i+' '+l+'</div><div class="kv">'+v+'</div><div class="ks">'+s+'</div>'+(b?'<div class="pb"><div class="pf" style="width:'+p+'%"></div></div>':'')+'</div>';}
+function pick(w){sel=w;renderTabs();render();}
+function kpi(l,v,s,p,b){
+  return'<div class="kpi"><div class="kl">'+l+'</div><div class="kv">'+v+'</div><div class="ks">'+s+'</div>'+(b?'<div class="pb"><div class="pf" style="width:'+p+'%"></div></div>':'')+'</div>';
+}
 function render(){
-  const ag=fg(),vn=fv();
-  const tot=ag.length,pres=ag.filter(a=>a.p==="SI").length;
-  const cl=ag.filter(a=>a.r&&(a.r.toLowerCase().includes("compr")||a.r.toLowerCase().includes("abono"))).length;
-  const sr=tot>0?Math.round(pres/tot*100):0,cr=pres>0?Math.round(cl/pres*100):0;
-  const tf=vn.reduce((s,v)=>s+v.fa,0);
+  var ag=fg(),vn=fv();
+  var tot=ag.length;
+  var pres=ag.filter(function(a){return a.p==="SI";}).length;
+  var cl=ag.filter(function(a){return a.r&&(a.r.toLowerCase().indexOf("compro")>-1||a.r.toLowerCase().indexOf("abono")>-1);}).length;
+  var sr=tot>0?Math.round(pres/tot*100):0;
+  var cr=pres>0?Math.round(cl/pres*100):0;
+  var tf=vn.reduce(function(s,v){return s+v.fa;},0);
   document.getElementById("kpis").innerHTML=
-    kpi("&#128197;","Agendas",tot,"Total del per&#237;odo","",0)+
-    kpi("&#9989;","Presentaron",pres,"Show rate: "+sr+"%",sr,1)+
-    kpi("&#128176;","Ventas",cl,"Close rate: "+cr+"%",cr,1)+
-    kpi("&#128181;","Facturaci&#243;n","$"+tf.toLocaleString(),vn.length+" clientes","",0)+
-    kpi("&#128683;","No Shows",tot-pres,"No-show: "+(100-sr)+"%","",0);
-  const rc={};
-  ag.forEach(a=>{
-    let c="Sin datos";
+    kpi("Agendas Totales",tot,"Total del periodo","",0)+
+    kpi("Se Presentaron",pres,"Show rate: "+sr+"%",sr,1)+
+    kpi("Ventas Cerradas",cl,"Close rate: "+cr+"%",cr,1)+
+    kpi("Facturacion Total","$"+tf.toLocaleString(),vn.length+" clientes","",0)+
+    kpi("No Shows",tot-pres,"No-show: "+(100-sr)+"%","",0);
+  var rc={};
+  ag.forEach(function(a){
+    var c;
     if(!a.r)c="Sin datos";
-    else{const l=a.r.toLowerCase();
-      if(l.includes("compr")||l.includes("abono"))c="Compr&#243; / Abono";
-      else if(l.includes("no se present"))c="No se present&#243;";
-      else if(l.includes("pendiente")||l.includes("seguimiento")||l.includes("link"))c="En seguimiento";
-      else if(l.includes("no tiene"))c="Sin presupuesto";
-      else if(l.includes("repetida"))c="Repetida";
+    else{var l=a.r.toLowerCase();
+      if(l.indexOf("compro")>-1||l.indexOf("abono")>-1)c="Compro / Abono";
+      else if(l.indexOf("no se presento")>-1)c="No se presento";
+      else if(l.indexOf("pendiente")>-1||l.indexOf("seguimiento")>-1||l.indexOf("link")>-1)c="En seguimiento";
+      else if(l.indexOf("no tiene")>-1)c="Sin presupuesto";
+      else if(l.indexOf("repetida")>-1)c="Repetida";
       else c=a.r;
     }
     rc[c]=(rc[c]||0)+1;
   });
-  const dc={};ag.forEach(a=>{dc[a.f]=(dc[a.f]||0)+1;});
+  var dc={};
+  ag.forEach(function(a){dc[a.f]=(dc[a.f]||0)+1;});
   if(cR)cR.destroy();
   cR=new Chart(document.getElementById("cR").getContext("2d"),{
     type:"doughnut",
@@ -192,19 +195,22 @@ function render(){
     options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{position:"right",labels:{color:"#aaa",font:{size:11},boxWidth:12,padding:10}}}}
   });
   if(cD)cD.destroy();
-  const dk=Object.keys(dc);
+  var dk=Object.keys(dc);
   cD=new Chart(document.getElementById("cD").getContext("2d"),{
     type:"bar",
-    data:{labels:dk,datasets:[{data:dk.map(k=>dc[k]),backgroundColor:"rgba(255,215,0,0.25)",borderColor:"#ffd700",borderWidth:2,borderRadius:5}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#555",maxRotation:45,font:{size:10}},grid:{display:false}},y:{ticks:{color:"#555",stepSize:1},grid:{color:"#ffffff06"}}}}
+    data:{labels:dk,datasets:[{data:dk.map(function(k){return dc[k];}),backgroundColor:"rgba(255,215,0,0.25)",borderColor:"#ffd700",borderWidth:2,borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#555",maxRotation:45,font:{size:10}},grid:{display:false}},y:{ticks:{color:"#555",stepSize:1},grid:{color:"rgba(255,255,255,0.04)"}}}}
   });
-  document.getElementById("tA").innerHTML=ag.length===0?'<tr><td colspan="6" style="text-align:center;padding:30px;color:#333">Sin agendas</td></tr>':
-    ag.map(a=>'<tr><td><strong>'+a.n+'</strong></td><td style="color:#666">'+a.f+'</td><td style="color:#555">'+( a.h||"&#8212;")+'</td><td>'+(a.cl||"&#8212;")+'</td><td>'+(a.p?'<span class="b '+(a.p==="SI"?"b-si":"b-no")+'">'+a.p+'</span>':'<span class="b b-ot">&#8212;</span>')+'</td><td>'+bd(a.r)+'</td></tr>').join("");
-  document.getElementById("tV").innerHTML=vn.length===0?'<tr><td colspan="7" style="text-align:center;padding:30px;color:#333">Sin ventas</td></tr>':
-    vn.map(v=>'<tr><td><strong>'+v.n+'</strong></td><td style="color:#666">'+v.f+'</td><td>'+v.cl+'</td><td>'+v.s+'</td><td style="color:#555;font-size:12px">'+v.pr+'</td><td>'+v.pl+'</td><td style="color:#ffd700;font-weight:800">$'+v.fa.toLocaleString()+'</td></tr>').join("");
+  var taHtml=ag.length===0?'<tr><td colspan="6" style="text-align:center;padding:30px;color:#333">Sin agendas</td></tr>':
+    ag.map(function(a){return'<tr><td><strong>'+a.n+'</strong></td><td style="color:#666">'+a.f+'</td><td style="color:#555">'+(a.h||"-")+'</td><td>'+(a.cl||"-")+'</td><td>'+(a.p?'<span class="b '+(a.p==="SI"?"b-si":"b-no")+'">'+a.p+'</span>':'<span class="b b-ot">-</span>')+'</td><td>'+bd(a.r)+'</td></tr>';}).join("");
+  document.getElementById("tA").innerHTML=taHtml;
+  var tvHtml=vn.length===0?'<tr><td colspan="7" style="text-align:center;padding:30px;color:#333">Sin ventas</td></tr>':
+    vn.map(function(v){return'<tr><td><strong>'+v.n+'</strong></td><td style="color:#666">'+v.f+'</td><td>'+v.cl+'</td><td>'+v.s+'</td><td style="color:#555;font-size:12px">'+v.pr+'</td><td>'+v.pl+'</td><td style="color:#ffd700;font-weight:800">$'+v.fa.toLocaleString()+'</td></tr>';}).join("");
+  document.getElementById("tV").innerHTML=tvHtml;
 }
 document.getElementById("ts").textContent="Datos al 28/03/2026";
-tabs();render();
+renderTabs();
+render();
 </script>
 </body>
 </html>
