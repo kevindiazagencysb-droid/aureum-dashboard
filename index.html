@@ -43,7 +43,6 @@ tr:hover td{background:rgba(255,215,0,0.03)}
 .refresh-btn:hover{opacity:0.85}
 .status{font-size:11px;color:#555;margin-left:12px}
 .loading{text-align:center;padding:60px;color:#555;font-size:14px}
-.note{font-size:10px;color:#333;margin-top:6px;font-style:italic}
 @media(max-width:700px){.r2{grid-template-columns:1fr}}
 </style>
 </head>
@@ -102,37 +101,27 @@ function onData(data) {
 function parseDate(str) {
   if (!str) return null;
   if (str instanceof Date) return str;
-  var s = str.toString().trim();
-  var d = new Date(s);
-  if (!isNaN(d)) return d;
-  return null;
+  var d = new Date(str.toString().trim());
+  return isNaN(d) ? null : d;
 }
 
-function getWeeks() {
-  var weeks = {};
-  for (var i = 0; i < AG.length; i++) {
-    var a = AG[i];
-    var d = parseDate(a.fecha);
-    if (!d) continue;
-    var day = d.getDay();
-    var mon = new Date(d);
-    mon.setDate(d.getDate() - ((day === 0 ? 7 : day) - 1));
-    mon.setHours(0,0,0,0);
-    var sun = new Date(mon);
-    sun.setDate(mon.getDate() + 6);
-    sun.setHours(23,59,59,999);
-    var key = mon.toISOString().slice(0,10);
-    if (!weeks[key]) {
-      var wn = getWeekNum(mon);
-      weeks[key] = { key: key, label: "Sem " + wn + " (" + fmtD(mon) + " - " + fmtD(sun) + ")", mon: mon, sun: sun };
-    }
-  }
-  return Object.values(weeks).sort(function(a,b){ return a.mon - b.mon; });
+function getMonday(d) {
+  var day = d.getDay();
+  var mon = new Date(d);
+  mon.setDate(d.getDate() - ((day === 0 ? 7 : day) - 1));
+  mon.setHours(0,0,0,0);
+  return mon;
 }
 
-function fmtD(d) {
-  var mo = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-  return d.getDate() + " " + mo[d.getMonth()];
+function getSunday(mon) {
+  var sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  sun.setHours(23,59,59,999);
+  return sun;
+}
+
+function getWeekKey(d) {
+  return getMonday(d).toISOString().slice(0,10);
 }
 
 function getWeekNum(d) {
@@ -140,31 +129,59 @@ function getWeekNum(d) {
   return Math.ceil(((d - j) / 86400000 + j.getDay() + 1) / 7);
 }
 
+function fmtD(d) {
+  var mo = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  return d.getDate() + " " + mo[d.getMonth()];
+}
+
+function getWeeks() {
+  var weeks = {};
+  for (var i = 0; i < AG.length; i++) {
+    var d = parseDate(AG[i].fecha);
+    if (!d) continue;
+    var mon = getMonday(d);
+    var key = mon.toISOString().slice(0,10);
+    if (!weeks[key]) {
+      var sun = getSunday(mon);
+      var wn = getWeekNum(mon);
+      weeks[key] = { key: key, label: "Sem " + wn + " (" + fmtD(mon) + " - " + fmtD(sun) + ")", mon: mon, sun: sun };
+    }
+  }
+  return Object.values(weeks).sort(function(a,b){ return a.mon - b.mon; });
+}
+
+function getWeekBounds(key) {
+  var wks = getWeeks();
+  for (var i = 0; i < wks.length; i++) {
+    if (wks[i].key === key) return wks[i];
+  }
+  return null;
+}
+
 function filterAG(ag) {
   if (SELW === "todo") return ag;
-  var wks = getWeeks();
-  var w = null;
-  for (var i = 0; i < wks.length; i++) {
-    if (wks[i].key === SELW) { w = wks[i]; break; }
-  }
+  var w = getWeekBounds(SELW);
   if (!w) return ag;
   return ag.filter(function(a) {
     var d = parseDate(a.fecha);
-    if (!d) return false;
-    return d >= w.mon && d <= w.sun;
+    return d && d >= w.mon && d <= w.sun;
   });
 }
 
-function isVenta(r) {
-  if (!r) return false;
-  var rl = r.toLowerCase();
-  return rl.indexOf("compro") > -1 || rl.indexOf("compra") > -1 || rl.indexOf("abono") > -1 || rl.indexOf("cuotas") > -1;
+function filterVT(vt) {
+  if (SELW === "todo") return vt;
+  var w = getWeekBounds(SELW);
+  if (!w) return vt;
+  return vt.filter(function(v) {
+    var d = parseDate(v.fechaPago);
+    return d && d >= w.mon && d <= w.sun;
+  });
 }
 
 function badgeR(r) {
   if (!r) return "<span class=b-seg>-</span>";
   var rl = r.toLowerCase();
-  if (isVenta(r) || rl.indexOf("pago") > -1) return "<span class=b-ok>" + r + "</span>";
+  if (rl.indexOf("compro") > -1 || rl.indexOf("compra") > -1 || rl.indexOf("abono") > -1 || rl.indexOf("cuotas") > -1 || rl.indexOf("pago") > -1) return "<span class=b-ok>" + r + "</span>";
   if (rl.indexOf("pendiente") > -1 || rl.indexOf("link") > -1) return "<span class=b-pend>" + r + "</span>";
   if (rl.indexOf("no se present") > -1 || rl.indexOf("no tiene") > -1) return "<span class=b-neg>" + r + "</span>";
   return "<span class=b-seg>" + r + "</span>";
@@ -178,30 +195,33 @@ function kpi(label, value, sub, rate, pct) {
 
 function render() {
   var wks = getWeeks();
-  var fil = filterAG(AG);
-  var tot = fil.length;
-  var pres = fil.filter(function(a){ return a.sePresento === "SI"; }).length;
-  var noS = fil.filter(function(a){ return a.sePresento === "NO"; }).length;
-  var vtas = fil.filter(function(a){ return isVenta(a.resultado); }).length;
-  var sr = tot > 0 ? Math.round(pres / tot * 100) : 0;
-  var cr = pres > 0 ? Math.round(vtas / pres * 100) : 0;
+  var filAG = filterAG(AG);
+  var filVT = filterVT(VT);
 
+  var tot = filAG.length;
+  var pres = filAG.filter(function(a){ return a.sePresento === "SI"; }).length;
+  var noS = filAG.filter(function(a){ return a.sePresento === "NO"; }).length;
+  var sr = tot > 0 ? Math.round(pres / tot * 100) : 0;
+
+  // Ventas y facturacion: siempre del sheet VENTAS filtrado por fechaPago
+  var vtas = filVT.length;
+  var cr = pres > 0 ? Math.round(vtas / pres * 100) : 0;
   var facTot = 0;
-  for (var i = 0; i < VT.length; i++) {
-    var fv = (VT[i].facturacion || "").toString().replace(/[^0-9.]/g,"");
+  for (var i = 0; i < filVT.length; i++) {
+    var fv = (filVT[i].facturacion || "").toString().replace(/[^0-9.]/g,"");
     facTot += parseFloat(fv) || 0;
   }
 
   var rC = {};
-  for (var i = 0; i < fil.length; i++) {
-    var r = fil[i].resultado || "Sin resultado";
+  for (var i = 0; i < filAG.length; i++) {
+    var r = filAG[i].resultado || "Sin resultado";
     rC[r] = (rC[r] || 0) + 1;
   }
 
   var dC = {};
   var dn = ["Dom","Lun","Mar","Mie","Jue","Vie","Sab"];
-  for (var i = 0; i < fil.length; i++) {
-    var dd = parseDate(fil[i].fecha);
+  for (var i = 0; i < filAG.length; i++) {
+    var dd = parseDate(filAG[i].fecha);
     if (!dd) continue;
     var nm = dn[dd.getDay()];
     dC[nm] = (dC[nm] || 0) + 1;
@@ -219,7 +239,7 @@ function render() {
   kH += kpi("Se Presentaron", pres, "de " + tot + " agendas", sr + "% show rate", sr);
   kH += kpi("No Shows", noS, "no se presentaron", (100-sr) + "% no show rate", 100-sr);
   kH += kpi("Ventas Cerradas", vtas, "de " + pres + " presentes", cr + "% close rate", cr);
-  var fS = facTot > 0 ? "$" + Math.round(facTot).toLocaleString("es-AR") : VT.length + " ventas";
+  var fS = facTot > 0 ? "$" + Math.round(facTot).toLocaleString("es-AR") : "0";
   kH += kpi("Facturacion", fS, "ventas del periodo", "", 0);
   kH += "</div>";
 
@@ -234,19 +254,19 @@ function render() {
   cH += "<div class=card><h3>Agendas por Dia (fecha cita)</h3><canvas id=chartB height=220></canvas></div>";
   cH += "</div>";
 
-  var aH = "<div class=wbox><h3>Detalle de Agendas</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha Cita</th><th>Hora</th><th>Closer</th><th>Presento</th><th>Resultado</th></tr></thead><tbody>";
-  for (var i = 0; i < fil.length; i++) {
-    var a = fil[i];
-    var fp = a.fecha ? a.fecha.slice(0,10) : "-";
+  var aH = "<div class=wbox><h3>Detalle de Agendas (" + tot + ")</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha Cita</th><th>Hora</th><th>Closer</th><th>Presento</th><th>Resultado</th></tr></thead><tbody>";
+  for (var i = 0; i < filAG.length; i++) {
+    var a = filAG[i];
+    var fp = a.fecha ? a.fecha.toString().slice(0,15) : "-";
     var sp = a.sePresento === "SI" ? "<span class=b-si>SI</span>" : "<span class=b-no>NO</span>";
     aH += "<tr><td>" + (a.nombre||"-") + "</td><td>" + fp + "</td><td>" + (a.hora||"-") + "</td><td>" + (a.closer||"-") + "</td><td>" + sp + "</td><td>" + badgeR(a.resultado) + "</td></tr>";
   }
   aH += "</tbody></table></div></div>";
 
-  var vH = "<div class=wbox><h3>Ventas Cerradas</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha Pago</th><th>Closer</th><th>Setter</th><th>Programa</th><th>Plan</th><th>Facturacion</th></tr></thead><tbody>";
-  for (var i = 0; i < VT.length; i++) {
-    var v = VT[i];
-    var fp2 = v.fechaPago ? v.fechaPago.slice(0,10) : "-";
+  var vH = "<div class=wbox><h3>Ventas Cerradas (" + filVT.length + ")</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha Pago</th><th>Closer</th><th>Setter</th><th>Programa</th><th>Plan</th><th>Facturacion</th></tr></thead><tbody>";
+  for (var i = 0; i < filVT.length; i++) {
+    var v = filVT[i];
+    var fp2 = v.fechaPago ? v.fechaPago.toString().slice(0,15) : "-";
     vH += "<tr><td>" + (v.nombre||"-") + "</td><td>" + fp2 + "</td><td>" + (v.closer||"-") + "</td><td>" + (v.setter||"-") + "</td><td>" + (v.programa||"-") + "</td><td>" + (v.plan||"-") + "</td><td>" + (v.facturacion||"-") + "</td></tr>";
   }
   vH += "</tbody></table></div></div>";
