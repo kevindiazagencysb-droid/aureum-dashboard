@@ -22,195 +22,259 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0a15;color:#e0e0e0;mi
 .kpi:hover{transform:translateY(-2px)}
 .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#ffd700,#ff8800)}
 .kl{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
-.kv{font-size:38px;font-weight:900;color:#ffd700;line-height:1}
+.kv{font-size:36px;font-weight:900;color:#ffd700;line-height:1}
 .ks{font-size:11px;color:#444;margin-top:6px}
 .pb{background:#0a0a15;border-radius:6px;height:5px;margin-top:10px;overflow:hidden}
 .pf{height:100%;border-radius:6px;background:linear-gradient(90deg,#ffd700,#ff8800);transition:width .6s}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.card{background:#12122a;border:1px solid #1e1e38;border-radius:14px;padding:22px;margin-bottom:24px}
-.card h3{font-size:11px;color:#ffd700;text-transform:uppercase;letter-spacing:2px;margin-bottom:18px}
-.ch{position:relative;height:260px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{font-size:10px;color:#444;text-transform:uppercase;letter-spacing:1px;padding:10px 14px;border-bottom:1px solid #1e1e38;text-align:left;font-weight:600}
-td{padding:11px 14px;border-bottom:1px solid #0f0f22;vertical-align:middle}
-tr:hover td{background:rgba(255,255,255,0.02)}
-.b{display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
-.b-si{background:rgba(0,200,81,0.1);color:#00c851;border:1px solid rgba(0,200,81,0.2)}
-.b-no{background:rgba(255,68,85,0.1);color:#ff4455;border:1px solid rgba(255,68,85,0.2)}
-.b-buy{background:rgba(255,215,0,0.1);color:#ffd700;border:1px solid rgba(255,215,0,0.2)}
-.b-pd{background:rgba(255,136,0,0.1);color:#ff8800;border:1px solid rgba(255,136,0,0.2)}
-.b-ns{background:rgba(255,68,85,0.07);color:#cc3344;border:1px solid rgba(255,68,85,0.12)}
-.b-ot{background:rgba(80,80,80,0.2);color:#777;border:1px solid rgba(80,80,80,0.3)}
-@media(max-width:900px){.r2{grid-template-columns:1fr}.grid5{grid-template-columns:repeat(2,1fr)}}
+.card{background:#12122a;border:1px solid #1e1e38;border-radius:14px;padding:22px}
+.card h3{color:#ffd700;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px;padding:8px 12px;border-bottom:1px solid #1e1e38;text-align:left}
+td{padding:10px 12px;border-bottom:1px solid #0f0f20;font-size:13px}
+tr:hover td{background:rgba(255,215,0,0.03)}
+.b-si{background:rgba(0,200,100,0.15);color:#00c864;padding:3px 8px;border-radius:10px;font-size:11px}
+.b-no{background:rgba(255,60,60,0.15);color:#ff3c3c;padding:3px 8px;border-radius:10px;font-size:11px}
+.b-ok{background:rgba(0,200,100,0.15);color:#00c864;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
+.b-pend{background:rgba(255,165,0,0.15);color:#ffa500;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
+.b-neg{background:rgba(255,60,60,0.15);color:#ff6060;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
+.b-seg{background:rgba(100,150,255,0.15);color:#6496ff;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
+.refresh-btn{background:linear-gradient(90deg,#ffd700,#ffaa00);color:#0a0a15;border:none;padding:8px 18px;border-radius:20px;font-weight:700;cursor:pointer;font-size:12px}
+.refresh-btn:hover{opacity:0.85}
+.status{font-size:11px;color:#555;margin-left:12px}
+.loading{text-align:center;padding:60px;color:#555;font-size:14px}
+@media(max-width:700px){.r2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="header">
   <div>
-    <div class="logo">&#9889; AUREUM</div>
-    <div class="sub">Dashboard de Agendas &amp; Ventas - Evergreen</div>
+    <div class="logo">AUREUM</div>
+    <div class="sub">Dashboard de Agendas y Ventas - Evergreen</div>
   </div>
-  <div id="ts" style="font-size:11px;color:#333"></div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="refresh-btn" onclick="loadData()">Actualizar datos</button>
+    <span class="status" id="lastUpdate"></span>
+  </div>
 </div>
 <div class="container">
-  <div class="wbox">
-    <h3>Seleccionar Semana</h3>
-    <div class="wtabs" id="tabs"></div>
-  </div>
-  <div class="grid5" id="kpis"></div>
-  <div class="r2">
-    <div class="card" style="margin-bottom:0"><h3>Resultados de Agenda</h3><div class="ch"><canvas id="cR"></canvas></div></div>
-    <div class="card" style="margin-bottom:0"><h3>Agendas por Dia</h3><div class="ch"><canvas id="cD"></canvas></div></div>
-  </div>
-  <div class="card" style="margin-top:24px">
-    <h3>Detalle de Agendas</h3>
-    <div style="overflow-x:auto">
-      <table><thead><tr><th>Nombre</th><th>Fecha</th><th>Hora</th><th>Closer</th><th>Pres.</th><th>Resultado</th></tr></thead>
-      <tbody id="tA"></tbody></table>
-    </div>
-  </div>
-  <div class="card">
-    <h3>Ventas Cerradas</h3>
-    <div style="overflow-x:auto">
-      <table><thead><tr><th>Nombre</th><th>Fecha</th><th>Closer</th><th>Setter</th><th>Programa</th><th>Plan</th><th>Facturacion</th></tr></thead>
-      <tbody id="tV"></tbody></table>
-    </div>
-  </div>
+  <div id="app"><div class="loading">Cargando datos desde Google Sheets...</div></div>
 </div>
 <script>
-var AG=[
-  {n:"Gonzalo Feser",f:"12 Mar",h:"10:00",cl:"Agustin",p:"NO",r:"Repetida",w:11},
-  {n:"Ricardo Jose Chiementin",f:"12 Mar",h:"10:30",cl:"Agustin",p:"SI",r:"Compro 1 pago $1193",w:11},
-  {n:"Francisco Valderrama",f:"12 Mar",h:"11:30",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Diego Justet",f:"12 Mar",h:"12:30",cl:"Agustin",p:"SI",r:"Compro 3 pagos $500",w:11},
-  {n:"Veronica Williams",f:"12 Mar",h:"16:00",cl:"Agustin",p:"SI",r:"Abono reserva $100",w:11},
-  {n:"Santiago",f:"12 Mar",h:"20:00",cl:"Agustin",p:"SI",r:"Atendio - Seguimiento Wpp",w:11},
-  {n:"Carlos Lolaverry",f:"13 Mar",h:"10:30",cl:"Agustin",p:"SI",r:"Pendiente - Seguimiento Wpp",w:11},
-  {n:"Fernando Gatto",f:"13 Mar",h:"12:00",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Lautaro Frias",f:"13 Mar",h:"15:00",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Franco Dario Ramirez",f:"13 Mar",h:"16:00",cl:"Agustin",p:"SI",r:"Atendio - Seguimiento Wpp",w:11},
-  {n:"Gustavo Alegre",f:"13 Mar",h:"16:30",cl:"Agustin",p:"SI",r:"Atendio - Seguimiento Wpp",w:11},
-  {n:"Jose Alexander Rangel",f:"13 Mar",h:"16:30",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Emilio Andres Almanza",f:"13 Mar",h:"20:00",cl:"Agustin",p:"SI",r:"No tiene dinero",w:11},
-  {n:"Luis Garcia",f:"14 Mar",h:"11:30",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Marcelo Ariel Baez",f:"14 Mar",h:"15:30",cl:"Agustin",p:"SI",r:"No tiene dinero",w:11},
-  {n:"Fernando Gatto",f:"14 Mar",h:"",cl:"Agustin",p:"SI",r:"Pendiente - Seguimiento Wpp",w:11},
-  {n:"Sergio Villanueva",f:"14 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Dito Gonzalez",f:"14 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Katerine Plasencia",f:"14 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Dario Barberan",f:"15 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Leandro Quintana",f:"15 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Marco Vocaturo",f:"15 Mar",h:"",cl:"Agustin",p:"SI",r:"Pendiente - Seguimiento Wpp",w:11},
-  {n:"Aldo Soloaga",f:"15 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Luis Pablo Garcia",f:"15 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:11},
-  {n:"Gaston Sequeira",f:"16 Mar",h:"12:00",cl:"Agustin",p:"NO",r:"Pendiente - Seguimiento Wpp",w:11},
-  {n:"Jose Alexander Rangel",f:"16 Mar",h:"15:30",cl:"Agustin",p:"SI",r:"Pendiente - Link de pago enviado",w:11},
-  {n:"Juan Perdomo",f:"16 Mar",h:"15:00",cl:"Agustin",p:"SI",r:"Compro 1 pago $1500",w:11},
-  {n:"Gonzalo Corrales",f:"16 Mar",h:"10:30",cl:"Agustin",p:"SI",r:"Pendiente - Link de pago enviado",w:11},
-  {n:"Fabio Della Pace",f:"16 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 1 pago $1500",w:11},
-  {n:"Jhon Fredy Henao",f:"17 Mar",h:"",cl:"Agustin",p:"SI",r:"Atendio - Seguimiento Wpp",w:12},
-  {n:"Diego Cuello",f:"17 Mar",h:"",cl:"Agustin",p:"NO",r:"No se presento",w:12},
-  {n:"Victor Arrutti",f:"18 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 2 cuotas $750",w:12},
-  {n:"Facundo Ferreyra",f:"18 Mar",h:"",cl:"Agustin",p:"SI",r:"Atendio - Seguimiento Wpp",w:12},
-  {n:"Aldo Gustavo Soloaga",f:"18 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 2 cuotas $750",w:12},
-  {n:"Fabio Ariel Della Pace",f:"20 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 1 pago $1500",w:12},
-  {n:"Fernando Gatto",f:"20 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 3 pagos $500",w:12},
-  {n:"Eric Damian Kostoff",f:"20 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 3 pagos $500",w:12},
-  {n:"Marco Vinicio Vocaturo",f:"21 Mar",h:"",cl:"Agustin",p:"SI",r:"Abono reserva $500",w:12},
-  {n:"Omar Dario Liva",f:"24 Mar",h:"",cl:"Agustin",p:"SI",r:"Compro 1 pago $1500",w:13},
-  {n:"Darickson Caceres Mellado",f:"27 Mar",h:"15:30",cl:"",p:"",r:"Pendiente",w:13},
-  {n:"Rogelio Ricardo Lobos",f:"27 Mar",h:"18:00",cl:"",p:"",r:"Pendiente",w:13},
-  {n:"Belen Arce",f:"27 Mar",h:"19:15",cl:"",p:"",r:"Pendiente",w:13},
-  {n:"Walter Castro",f:"27 Mar",h:"20:15",cl:"",p:"",r:"Pendiente",w:13}
-];
-var VN=[
-  {n:"Ricardo Jose Chiementin",f:"12/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1193",fa:1193,w:11},
-  {n:"Diego Justet",f:"12/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 500",fa:1500,w:11},
-  {n:"Veronica Williams",f:"12/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:11},
-  {n:"Juan Pablo Perdomo",f:"16/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:11},
-  {n:"Aldo Gustavo Soloaga",f:"18/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 750",fa:1500,w:12},
-  {n:"Fabio Ariel Della Pace",f:"20/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:12},
-  {n:"Fernando Gatto",f:"20/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 500",fa:1500,w:12},
-  {n:"Eric Damian Kostoff",f:"20/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Cuotas 500",fa:1500,w:12},
-  {n:"Marco Vinicio Vocaturo",f:"21/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:12},
-  {n:"Omar Dario Liva",f:"24/03",cl:"Agustin",s:"Mati",pr:"High Ticket Incubadora",pl:"Full 1500",fa:1500,w:13}
-];
-var WL={11:"Sem 11 (10-16 Mar)",12:"Sem 12 (17-23 Mar)",13:"Sem 13 (24-30 Mar)"};
-var sel="all",cR=null,cD=null;
-function bd(r){
-  if(!r)return'<span class="b b-ot">-</span>';
-  var l=r.toLowerCase();
-  if(l.indexOf("compro")>-1||l.indexOf("abono")>-1)return'<span class="b b-buy">$ '+r+'</span>';
-  if(l.indexOf("no se presento")>-1)return'<span class="b b-ns">No se presento</span>';
-  if(l.indexOf("pendiente")>-1||l.indexOf("seguimiento")>-1||l.indexOf("link")>-1)return'<span class="b b-pd">'+r+'</span>';
-  if(l.indexOf("no tiene")>-1)return'<span class="b b-no">Sin presupuesto</span>';
-  if(l.indexOf("repetida")>-1)return'<span class="b b-ot">Repetida</span>';
-  return'<span class="b b-ot">'+r+'</span>';
+var API = "https://script.google.com/macros/s/AKfycbwILis_7d5FpYpL4zAVmNtWGmB5P63WFHodzk9nFIg9_FPVFy-Nr9RsGnX8_00ZAceNUQ/exec";
+var AG = [];
+var VT = [];
+var selWeek = "all";
+var chartD = null;
+var chartB = null;
+
+function loadData() {
+  document.getElementById("lastUpdate").textContent = "Actualizando...";
+  var s = document.createElement("script");
+  s.src = API + "?callback=onData&t=" + Date.now();
+  document.head.appendChild(s);
 }
-function fg(){return sel==="all"?AG:AG.filter(function(a){return a.w===+sel;});}
-function fv(){return sel==="all"?VN:VN.filter(function(v){return v.w===+sel;});}
-function renderTabs(){
-  var h='<div class="wt '+(sel==="all"?"on":"")+'" onclick="pick('all')">Todo el periodo</div>';
-  Object.keys(WL).forEach(function(k){h+='<div class="wt '+(sel===k?"on":"")+'" onclick="pick(''+k+'')">'+WL[k]+'</div>';});
-  document.getElementById("tabs").innerHTML=h;
+
+function onData(data) {
+  if (data && data.agendas) {
+    AG = data.agendas;
+    VT = data.ventas || [];
+    var ts = data.timestamp ? new Date(data.timestamp) : new Date();
+    var h = ts.getHours().toString().padStart(2,"0");
+    var m = ts.getMinutes().toString().padStart(2,"0");
+    document.getElementById("lastUpdate").textContent = "Actualizado " + h + ":" + m;
+  } else {
+    document.getElementById("lastUpdate").textContent = "Error al cargar";
+  }
+  render();
 }
-function pick(w){sel=w;renderTabs();render();}
-function kpi(l,v,s,p,b){
-  return'<div class="kpi"><div class="kl">'+l+'</div><div class="kv">'+v+'</div><div class="ks">'+s+'</div>'+(b?'<div class="pb"><div class="pf" style="width:'+p+'%"></div></div>':'')+'</div>';
-}
-function render(){
-  var ag=fg(),vn=fv();
-  var tot=ag.length;
-  var pres=ag.filter(function(a){return a.p==="SI";}).length;
-  var cl=ag.filter(function(a){return a.r&&(a.r.toLowerCase().indexOf("compro")>-1||a.r.toLowerCase().indexOf("abono")>-1);}).length;
-  var sr=tot>0?Math.round(pres/tot*100):0;
-  var cr=pres>0?Math.round(cl/pres*100):0;
-  var tf=vn.reduce(function(s,v){return s+v.fa;},0);
-  document.getElementById("kpis").innerHTML=
-    kpi("Agendas Totales",tot,"Total del periodo","",0)+
-    kpi("Se Presentaron",pres,"Show rate: "+sr+"%",sr,1)+
-    kpi("Ventas Cerradas",cl,"Close rate: "+cr+"%",cr,1)+
-    kpi("Facturacion Total","$"+tf.toLocaleString(),vn.length+" clientes","",0)+
-    kpi("No Shows",tot-pres,"No-show: "+(100-sr)+"%","",0);
-  var rc={};
-  ag.forEach(function(a){
-    var c;
-    if(!a.r)c="Sin datos";
-    else{var l=a.r.toLowerCase();
-      if(l.indexOf("compro")>-1||l.indexOf("abono")>-1)c="Compro / Abono";
-      else if(l.indexOf("no se presento")>-1)c="No se presento";
-      else if(l.indexOf("pendiente")>-1||l.indexOf("seguimiento")>-1||l.indexOf("link")>-1)c="En seguimiento";
-      else if(l.indexOf("no tiene")>-1)c="Sin presupuesto";
-      else if(l.indexOf("repetida")>-1)c="Repetida";
-      else c=a.r;
+
+function getWeeks() {
+  var weeks = {};
+  for (var i = 0; i < AG.length; i++) {
+    var a = AG[i];
+    var f = a.fecha;
+    if (!f) continue;
+    var d = new Date(f);
+    if (isNaN(d)) continue;
+    var day = d.getDay();
+    var mon = new Date(d);
+    mon.setDate(d.getDate() - ((day === 0 ? 7 : day) - 1));
+    var sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    var key = mon.toISOString().slice(0,10);
+    if (!weeks[key]) {
+      var ms = fmtD(mon);
+      var ss = fmtD(sun);
+      var wn = getWeekNum(mon);
+      weeks[key] = { key: key, label: "Sem " + wn + " (" + ms + " - " + ss + ")", mon: mon, sun: sun };
     }
-    rc[c]=(rc[c]||0)+1;
-  });
-  var dc={};
-  ag.forEach(function(a){dc[a.f]=(dc[a.f]||0)+1;});
-  if(cR)cR.destroy();
-  cR=new Chart(document.getElementById("cR").getContext("2d"),{
-    type:"doughnut",
-    data:{labels:Object.keys(rc),datasets:[{data:Object.values(rc),backgroundColor:["#ffd700","#ff4455","#ff8800","#8b5cf6","#06b6d4","#00c851"],borderWidth:0,hoverOffset:4}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{position:"right",labels:{color:"#aaa",font:{size:11},boxWidth:12,padding:10}}}}
-  });
-  if(cD)cD.destroy();
-  var dk=Object.keys(dc);
-  cD=new Chart(document.getElementById("cD").getContext("2d"),{
-    type:"bar",
-    data:{labels:dk,datasets:[{data:dk.map(function(k){return dc[k];}),backgroundColor:"rgba(255,215,0,0.25)",borderColor:"#ffd700",borderWidth:2,borderRadius:5}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#555",maxRotation:45,font:{size:10}},grid:{display:false}},y:{ticks:{color:"#555",stepSize:1},grid:{color:"rgba(255,255,255,0.04)"}}}}
-  });
-  var taHtml=ag.length===0?'<tr><td colspan="6" style="text-align:center;padding:30px;color:#333">Sin agendas</td></tr>':
-    ag.map(function(a){return'<tr><td><strong>'+a.n+'</strong></td><td style="color:#666">'+a.f+'</td><td style="color:#555">'+(a.h||"-")+'</td><td>'+(a.cl||"-")+'</td><td>'+(a.p?'<span class="b '+(a.p==="SI"?"b-si":"b-no")+'">'+a.p+'</span>':'<span class="b b-ot">-</span>')+'</td><td>'+bd(a.r)+'</td></tr>';}).join("");
-  document.getElementById("tA").innerHTML=taHtml;
-  var tvHtml=vn.length===0?'<tr><td colspan="7" style="text-align:center;padding:30px;color:#333">Sin ventas</td></tr>':
-    vn.map(function(v){return'<tr><td><strong>'+v.n+'</strong></td><td style="color:#666">'+v.f+'</td><td>'+v.cl+'</td><td>'+v.s+'</td><td style="color:#555;font-size:12px">'+v.pr+'</td><td>'+v.pl+'</td><td style="color:#ffd700;font-weight:800">$'+v.fa.toLocaleString()+'</td></tr>';}).join("");
-  document.getElementById("tV").innerHTML=tvHtml;
+  }
+  var arr = Object.values(weeks).sort(function(a,b){ return a.mon - b.mon; });
+  return arr;
 }
-document.getElementById("ts").textContent="Datos al 28/03/2026";
-renderTabs();
-render();
+
+function fmtD(d) {
+  var months = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  return d.getDate() + " " + months[d.getMonth()];
+}
+
+function getWeekNum(d) {
+  var jan1 = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+}
+
+function filterAG(ag) {
+  if (selWeek === "all") return ag;
+  var weeks = getWeeks();
+  var w = null;
+  for (var i = 0; i < weeks.length; i++) {
+    if (weeks[i].key === selWeek) { w = weeks[i]; break; }
+  }
+  if (!w) return ag;
+  return ag.filter(function(a) {
+    if (!a.fecha) return false;
+    var d = new Date(a.fecha);
+    return d >= w.mon && d <= w.sun;
+  });
+}
+
+function badgeR(r) {
+  if (!r) return '<span class="b-seg">-</span>';
+  var rl = r.toLowerCase();
+  if (rl.indexOf("compro") > -1 || rl.indexOf("compra") > -1 || rl.indexOf("pago") > -1 || rl.indexOf("abono") > -1 || rl.indexOf("cuotas") > -1) {
+    return '<span class="b-ok">' + r + '</span>';
+  }
+  if (rl.indexOf("pendiente") > -1 || rl.indexOf("link") > -1) {
+    return '<span class="b-pend">' + r + '</span>';
+  }
+  if (rl.indexOf("no se present") > -1 || rl.indexOf("no tiene") > -1) {
+    return '<span class="b-neg">' + r + '</span>';
+  }
+  return '<span class="b-seg">' + r + '</span>';
+}
+
+function isVenta(r) {
+  if (!r) return false;
+  var rl = r.toLowerCase();
+  return rl.indexOf("compro") > -1 || rl.indexOf("compra") > -1 || rl.indexOf("abono") > -1 || rl.indexOf("cuotas") > -1;
+}
+
+function render() {
+  var weeks = getWeeks();
+  var filtered = filterAG(AG);
+  var total = filtered.length;
+  var presentes = filtered.filter(function(a){ return a.sePresento === "SI"; }).length;
+  var ventas = filtered.filter(function(a){ return isVenta(a.resultado); }).length;
+  var noShow = filtered.filter(function(a){ return a.sePresento === "NO"; }).length;
+  var showRate = total > 0 ? Math.round(presentes / total * 100) : 0;
+  var closeRate = presentes > 0 ? Math.round(ventas / presentes * 100) : 0;
+
+  var facTotal = 0;
+  for (var i = 0; i < VT.length; i++) {
+    var f = VT[i].facturacion || "";
+    var n = parseFloat(f.toString().replace(/[^0-9.]/g,"")) || 0;
+    facTotal += n;
+  }
+
+  var resultCounts = {};
+  for (var i = 0; i < filtered.length; i++) {
+    var r = filtered[i].resultado || "Sin resultado";
+    resultCounts[r] = (resultCounts[r] || 0) + 1;
+  }
+
+  var dayCounts = {};
+  var dayNames = ["Dom","Lun","Mar","Mie","Jue","Vie","Sab"];
+  for (var i = 0; i < filtered.length; i++) {
+    if (!filtered[i].fecha) continue;
+    var d = new Date(filtered[i].fecha);
+    if (isNaN(d)) continue;
+    var dn = dayNames[d.getDay()];
+    dayCounts[dn] = (dayCounts[dn] || 0) + 1;
+  }
+
+  var tabsHTML = '<div class="wbox"><h3>Filtrar por semana</h3><div class="wtabs">';
+  tabsHTML += '<button class="wt ' + (selWeek === "all" ? "on" : "") + '" onclick="setWeek('all')">Todo el periodo</button>';
+  for (var i = 0; i < weeks.length; i++) {
+    var w = weeks[i];
+    tabsHTML += '<button class="wt ' + (selWeek === w.key ? "on" : "") + '" onclick="setWeek('' + w.key + '')">' + w.label + '</button>';
+  }
+  tabsHTML += '</div></div>';
+
+  var kpiHTML = '<div class="grid5">';
+  kpiHTML += kpi("Agendas Totales", total, "calendario", "", 0);
+  kpiHTML += kpi("Se Presentaron", presentes, "de " + total + " agendas", showRate + "% show rate", showRate);
+  kpiHTML += kpi("Ventas Cerradas", ventas, "de " + presentes + " presentes", closeRate + "% close rate", closeRate);
+  kpiHTML += kpi("No Shows", noShow, "no se presentaron", "", 0);
+  var facStr = facTotal > 0 ? "$" + facTotal.toLocaleString("es-AR") : VT.length + " ventas";
+  kpiHTML += kpi("Facturacion", facStr, "ventas totales del periodo", "", 0);
+  kpiHTML += '</div>';
+
+  var rLabels = Object.keys(resultCounts);
+  var rData = rLabels.map(function(k){ return resultCounts[k]; });
+  var rColors = ["#ffd700","#ff8800","#00c864","#6496ff","#ff6060","#c800ff","#00d4ff","#ff4488","#88ff00","#ffcc00"];
+
+  var dLabels = Object.keys(dayCounts);
+  var dData = dLabels.map(function(k){ return dayCounts[k]; });
+
+  var chartsHTML = '<div class="r2">';
+  chartsHTML += '<div class="card"><h3>Resultados de Agenda</h3><canvas id="chartD" height="220"></canvas></div>';
+  chartsHTML += '<div class="card"><h3>Agendas por Dia</h3><canvas id="chartB" height="220"></canvas></div>';
+  chartsHTML += '</div>';
+
+  var agHTML = '<div class="wbox"><h3>Detalle de Agendas</h3><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>Fecha</th><th>Hora</th><th>Closer</th><th>Presento</th><th>Resultado</th></tr></thead><tbody>';
+  for (var i = 0; i < filtered.length; i++) {
+    var a = filtered[i];
+    var fp = a.fecha ? a.fecha.slice(0,10) : "-";
+    var sp = a.sePresento === "SI" ? '<span class="b-si">SI</span>' : (a.sePresento === "NO" ? '<span class="b-no">NO</span>' : '<span class="b-seg">-</span>');
+    agHTML += '<tr><td>' + (a.nombre || "-") + '</td><td>' + fp + '</td><td>' + (a.hora || "-") + '</td><td>' + (a.closer || "-") + '</td><td>' + sp + '</td><td>' + badgeR(a.resultado) + '</td></tr>';
+  }
+  agHTML += '</tbody></table></div></div>';
+
+  var vtHTML = '<div class="wbox"><h3>Ventas Cerradas</h3><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>Fecha Pago</th><th>Closer</th><th>Setter</th><th>Programa</th><th>Plan</th><th>Facturacion</th></tr></thead><tbody>';
+  for (var i = 0; i < VT.length; i++) {
+    var v = VT[i];
+    var fv = v.fechaPago ? v.fechaPago.slice(0,10) : "-";
+    vtHTML += '<tr><td>' + (v.nombre || "-") + '</td><td>' + fv + '</td><td>' + (v.closer || "-") + '</td><td>' + (v.setter || "-") + '</td><td>' + (v.programa || "-") + '</td><td>' + (v.plan || "-") + '</td><td>' + (v.facturacion || "-") + '</td></tr>';
+  }
+  vtHTML += '</tbody></table></div></div>';
+
+  document.getElementById("app").innerHTML = tabsHTML + kpiHTML + chartsHTML + agHTML + vtHTML;
+
+  if (chartD) { chartD.destroy(); }
+  if (chartB) { chartB.destroy(); }
+
+  var ctxD = document.getElementById("chartD");
+  if (ctxD && rLabels.length > 0) {
+    chartD = new Chart(ctxD, {
+      type: "doughnut",
+      data: { labels: rLabels, datasets: [{ data: rData, backgroundColor: rColors, borderWidth: 2, borderColor: "#0a0a15" }] },
+      options: { plugins: { legend: { labels: { color: "#888", font: { size: 11 } } } }, cutout: "65%" }
+    });
+  }
+
+  var ctxB = document.getElementById("chartB");
+  if (ctxB && dLabels.length > 0) {
+    chartB = new Chart(ctxB, {
+      type: "bar",
+      data: { labels: dLabels, datasets: [{ label: "Agendas", data: dData, backgroundColor: "rgba(255,215,0,0.7)", borderRadius: 6 }] },
+      options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#888" }, grid: { color: "#1e1e38" } }, y: { ticks: { color: "#888" }, grid: { color: "#1e1e38" }, beginAtZero: true } } }
+    });
+  }
+}
+
+function kpi(label, value, sub, rate, pct) {
+  var bar = pct > 0 ? '<div class="pb"><div class="pf" style="width:' + pct + '%"></div></div>' : "";
+  var rateH = rate ? '<div class="ks">' + rate + '</div>' : "";
+  return '<div class="kpi"><div class="kl">' + label + '</div><div class="kv">' + value + '</div><div class="ks">' + sub + '</div>' + rateH + bar + '</div>';
+}
+
+function setWeek(k) {
+  selWeek = k;
+  render();
+}
+
+loadData();
 </script>
 </body>
 </html>
