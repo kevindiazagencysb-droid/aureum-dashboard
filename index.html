@@ -1,301 +1,248 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Aureum Dashboard - Agendas Evergreen</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0a15;color:#e0e0e0;min-height:100vh}
-.header{background:linear-gradient(135deg,#12122a,#1a1a35);padding:20px 32px;border-bottom:2px solid rgba(255,215,0,0.2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.logo{font-size:26px;font-weight:900;color:#ffd700}
-.sub{font-size:11px;color:#555;margin-top:4px;letter-spacing:1px;text-transform:uppercase}
-.container{max-width:1440px;margin:0 auto;padding:24px 20px}
-.wbox{background:#12122a;border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:20px;margin-bottom:24px}
-.wbox h3{color:#ffd700;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}
-.wtabs{display:flex;flex-wrap:wrap;gap:8px}
-.wt{padding:8px 18px;border-radius:30px;border:1px solid #2a2a4a;background:transparent;color:#888;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s}
-.wt:hover,.wt.on{background:linear-gradient(90deg,#ffd700,#ffaa00);color:#0a0a15;border-color:transparent;font-weight:800}
-.grid5{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:24px}
-.kpi{background:#12122a;border:1px solid #1e1e38;border-radius:14px;padding:22px 20px;position:relative;overflow:hidden;transition:transform .2s}
-.kpi:hover{transform:translateY(-2px)}
-.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#ffd700,#ff8800)}
-.kl{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
-.kv{font-size:36px;font-weight:900;color:#ffd700;line-height:1}
-.ks{font-size:11px;color:#444;margin-top:6px}
-.pb{background:#0a0a15;border-radius:6px;height:5px;margin-top:10px;overflow:hidden}
-.pf{height:100%;border-radius:6px;background:linear-gradient(90deg,#ffd700,#ff8800);transition:width .6s}
-.r2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.card{background:#12122a;border:1px solid #1e1e38;border-radius:14px;padding:22px}
-.card h3{color:#ffd700;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
-table{width:100%;border-collapse:collapse}
-th{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px;padding:8px 12px;border-bottom:1px solid #1e1e38;text-align:left}
-td{padding:10px 12px;border-bottom:1px solid #0f0f20;font-size:13px}
-tr:hover td{background:rgba(255,215,0,0.03)}
-.b-si{background:rgba(0,200,100,0.15);color:#00c864;padding:3px 8px;border-radius:10px;font-size:11px}
-.b-no{background:rgba(255,60,60,0.15);color:#ff3c3c;padding:3px 8px;border-radius:10px;font-size:11px}
-.b-ok{background:rgba(0,200,100,0.15);color:#00c864;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
-.b-pend{background:rgba(255,165,0,0.15);color:#ffa500;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
-.b-neg{background:rgba(255,60,60,0.15);color:#ff6060;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
-.b-seg{background:rgba(100,150,255,0.15);color:#6496ff;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
-.refresh-btn{background:linear-gradient(90deg,#ffd700,#ffaa00);color:#0a0a15;border:none;padding:8px 18px;border-radius:20px;font-weight:700;cursor:pointer;font-size:12px}
-.refresh-btn:hover{opacity:0.85}
-.status{font-size:11px;color:#555;margin-left:12px}
-.loading{text-align:center;padding:60px;color:#555;font-size:14px}
-@media(max-width:700px){.r2{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<div class="header">
-  <div>
-    <div class="logo">AUREUM</div>
-    <div class="sub">Dashboard de Agendas y Ventas - Evergreen</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:12px">
-    <button class="refresh-btn" id="btnRefresh">Actualizar datos</button>
-    <span class="status" id="lastUpdate"></span>
-  </div>
-</div>
-<div class="container">
-  <div id="app"><div class="loading">Cargando datos desde Google Sheets...</div></div>
-</div>
-<script>
-var API = "https://script.google.com/macros/s/AKfycbwILis_7d5FpYpL4zAVmNtWGmB5P63WFHodzk9nFIg9_FPVFy-Nr9RsGnX8_00ZAceNUQ/exec";
-var AG = [];
-var VT = [];
-var SELW = "todo";
-var CD = null;
-var CB = null;
-
-document.getElementById("btnRefresh").addEventListener("click", loadData);
-
-document.addEventListener("click", function(e) {
-  if (e.target && e.target.classList.contains("wt")) {
-    SELW = e.target.getAttribute("data-w");
-    render();
-  }
-});
-
-function loadData() {
-  document.getElementById("lastUpdate").textContent = "Actualizando...";
-  var s = document.createElement("script");
-  s.src = API + "?callback=onData&t=" + Date.now();
-  document.head.appendChild(s);
-}
-
-function onData(data) {
-  if (data && data.agendas) {
-    AG = data.agendas;
-    VT = data.ventas || [];
-    var ts = data.timestamp ? new Date(data.timestamp) : new Date();
-    var h = ts.getHours().toString().padStart(2,"0");
-    var m = ts.getMinutes().toString().padStart(2,"0");
-    document.getElementById("lastUpdate").textContent = "Actualizado " + h + ":" + m;
-  } else {
-    document.getElementById("lastUpdate").textContent = "Error al cargar";
-  }
-  render();
-}
-
-function parseDate(str) {
-  if (!str) return null;
-  if (str instanceof Date) return str;
-  var d = new Date(str.toString().trim());
-  return isNaN(d) ? null : d;
-}
-
-function getMonday(d) {
-  var day = d.getDay();
-  var mon = new Date(d);
-  mon.setDate(d.getDate() - ((day === 0 ? 7 : day) - 1));
-  mon.setHours(0,0,0,0);
-  return mon;
-}
-
-function getSunday(mon) {
-  var sun = new Date(mon);
-  sun.setDate(mon.getDate() + 6);
-  sun.setHours(23,59,59,999);
-  return sun;
-}
-
-function getWeekKey(d) {
-  return getMonday(d).toISOString().slice(0,10);
-}
-
-function getWeekNum(d) {
-  var j = new Date(d.getFullYear(), 0, 1);
-  return Math.ceil(((d - j) / 86400000 + j.getDay() + 1) / 7);
-}
-
-function fmtD(d) {
-  var mo = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-  return d.getDate() + " " + mo[d.getMonth()];
-}
-
-function getWeeks() {
-  var weeks = {};
-  for (var i = 0; i < AG.length; i++) {
-    var d = parseDate(AG[i].fecha);
-    if (!d) continue;
-    var mon = getMonday(d);
-    var key = mon.toISOString().slice(0,10);
-    if (!weeks[key]) {
-      var sun = getSunday(mon);
-      var wn = getWeekNum(mon);
-      weeks[key] = { key: key, label: "Sem " + wn + " (" + fmtD(mon) + " - " + fmtD(sun) + ")", mon: mon, sun: sun };
-    }
-  }
-  return Object.values(weeks).sort(function(a,b){ return a.mon - b.mon; });
-}
-
-function getWeekBounds(key) {
-  var wks = getWeeks();
-  for (var i = 0; i < wks.length; i++) {
-    if (wks[i].key === key) return wks[i];
-  }
-  return null;
-}
-
-function filterAG(ag) {
-  if (SELW === "todo") return ag;
-  var w = getWeekBounds(SELW);
-  if (!w) return ag;
-  return ag.filter(function(a) {
-    var d = parseDate(a.fecha);
-    return d && d >= w.mon && d <= w.sun;
-  });
-}
-
-function filterVT(vt) {
-  if (SELW === "todo") return vt;
-  var w = getWeekBounds(SELW);
-  if (!w) return vt;
-  return vt.filter(function(v) {
-    var d = parseDate(v.fechaPago);
-    return d && d >= w.mon && d <= w.sun;
-  });
-}
-
-function badgeR(r) {
-  if (!r) return "<span class=b-seg>-</span>";
-  var rl = r.toLowerCase();
-  if (rl.indexOf("compro") > -1 || rl.indexOf("compra") > -1 || rl.indexOf("abono") > -1 || rl.indexOf("cuotas") > -1 || rl.indexOf("pago") > -1) return "<span class=b-ok>" + r + "</span>";
-  if (rl.indexOf("pendiente") > -1 || rl.indexOf("link") > -1) return "<span class=b-pend>" + r + "</span>";
-  if (rl.indexOf("no se present") > -1 || rl.indexOf("no tiene") > -1) return "<span class=b-neg>" + r + "</span>";
-  return "<span class=b-seg>" + r + "</span>";
-}
-
-function kpi(label, value, sub, rate, pct) {
-  var bar = pct > 0 ? "<div class=pb><div class=pf style='width:" + pct + "%'></div></div>" : "";
-  var rH = rate ? "<div class=ks>" + rate + "</div>" : "";
-  return "<div class=kpi><div class=kl>" + label + "</div><div class=kv>" + value + "</div><div class=ks>" + sub + "</div>" + rH + bar + "</div>";
-}
-
-function render() {
-  var wks = getWeeks();
-  var filAG = filterAG(AG);
-  var filVT = filterVT(VT);
-
-  var tot = filAG.length;
-  var pres = filAG.filter(function(a){ return a.sePresento === "SI"; }).length;
-  var noS = filAG.filter(function(a){ return a.sePresento === "NO"; }).length;
-  var sr = tot > 0 ? Math.round(pres / tot * 100) : 0;
-
-  // Ventas y facturacion: siempre del sheet VENTAS filtrado por fechaPago
-  var vtas = filVT.length;
-  var cr = pres > 0 ? Math.round(vtas / pres * 100) : 0;
-  var facTot = 0;
-  for (var i = 0; i < filVT.length; i++) {
-    var fv = (filVT[i].facturacion || "").toString().replace(/[^0-9.]/g,"");
-    facTot += parseFloat(fv) || 0;
-  }
-
-  var rC = {};
-  for (var i = 0; i < filAG.length; i++) {
-    var r = filAG[i].resultado || "Sin resultado";
-    rC[r] = (rC[r] || 0) + 1;
-  }
-
-  var dC = {};
-  var dn = ["Dom","Lun","Mar","Mie","Jue","Vie","Sab"];
-  for (var i = 0; i < filAG.length; i++) {
-    var dd = parseDate(filAG[i].fecha);
-    if (!dd) continue;
-    var nm = dn[dd.getDay()];
-    dC[nm] = (dC[nm] || 0) + 1;
-  }
-
-  var tH = "<div class=wbox><h3>Filtrar por semana (fecha de la cita)</h3><div class=wtabs>";
-  tH += "<button class='wt" + (SELW === "todo" ? " on" : "") + "' data-w=todo>Todo el periodo</button>";
-  for (var i = 0; i < wks.length; i++) {
-    tH += "<button class='wt" + (SELW === wks[i].key ? " on" : "") + "' data-w=" + wks[i].key + ">" + wks[i].label + "</button>";
-  }
-  tH += "</div></div>";
-
-  var kH = "<div class=grid5>";
-  kH += kpi("Agendas Totales", tot, "con SI o NO registrado", "", 0);
-  kH += kpi("Se Presentaron", pres, "de " + tot + " agendas", sr + "% show rate", sr);
-  kH += kpi("No Shows", noS, "no se presentaron", (100-sr) + "% no show rate", 100-sr);
-  kH += kpi("Ventas Cerradas", vtas, "de " + pres + " presentes", cr + "% close rate", cr);
-  var fS = facTot > 0 ? "$" + Math.round(facTot).toLocaleString("es-AR") : "0";
-  kH += kpi("Facturacion", fS, "ventas del periodo", "", 0);
-  kH += "</div>";
-
-  var rL = Object.keys(rC);
-  var rD = rL.map(function(k){ return rC[k]; });
-  var rCol = ["#ffd700","#ff8800","#00c864","#6496ff","#ff6060","#c800ff","#00d4ff","#ff4488","#88ff00","#ffcc00"];
-  var dL = Object.keys(dC);
-  var dD = dL.map(function(k){ return dC[k]; });
-
-  var cH = "<div class=r2>";
-  cH += "<div class=card><h3>Resultados de Agenda</h3><canvas id=chartD height=220></canvas></div>";
-  cH += "<div class=card><h3>Agendas por Dia (fecha cita)</h3><canvas id=chartB height=220></canvas></div>";
-  cH += "</div>";
-
-  var aH = "<div class=wbox><h3>Detalle de Agendas (" + tot + ")</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha Cita</th><th>Hora</th><th>Closer</th><th>Presento</th><th>Resultado</th></tr></thead><tbody>";
-  for (var i = 0; i < filAG.length; i++) {
-    var a = filAG[i];
-    var fp = a.fecha ? a.fecha.toString().slice(0,15) : "-";
-    var sp = a.sePresento === "SI" ? "<span class=b-si>SI</span>" : "<span class=b-no>NO</span>";
-    aH += "<tr><td>" + (a.nombre||"-") + "</td><td>" + fp + "</td><td>" + (a.hora||"-") + "</td><td>" + (a.closer||"-") + "</td><td>" + sp + "</td><td>" + badgeR(a.resultado) + "</td></tr>";
-  }
-  aH += "</tbody></table></div></div>";
-
-  var vH = "<div class=wbox><h3>Ventas Cerradas (" + filVT.length + ")</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha Pago</th><th>Closer</th><th>Setter</th><th>Programa</th><th>Plan</th><th>Facturacion</th></tr></thead><tbody>";
-  for (var i = 0; i < filVT.length; i++) {
-    var v = filVT[i];
-    var fp2 = v.fechaPago ? v.fechaPago.toString().slice(0,15) : "-";
-    vH += "<tr><td>" + (v.nombre||"-") + "</td><td>" + fp2 + "</td><td>" + (v.closer||"-") + "</td><td>" + (v.setter||"-") + "</td><td>" + (v.programa||"-") + "</td><td>" + (v.plan||"-") + "</td><td>" + (v.facturacion||"-") + "</td></tr>";
-  }
-  vH += "</tbody></table></div></div>";
-
-  document.getElementById("app").innerHTML = tH + kH + cH + aH + vH;
-
-  if (CD) { CD.destroy(); CD = null; }
-  if (CB) { CB.destroy(); CB = null; }
-
-  var eD = document.getElementById("chartD");
-  if (eD && rL.length > 0) {
-    CD = new Chart(eD, {
-      type: "doughnut",
-      data: { labels: rL, datasets: [{ data: rD, backgroundColor: rCol, borderWidth: 2, borderColor: "#0a0a15" }] },
-      options: { plugins: { legend: { labels: { color: "#888", font: { size: 11 } } } }, cutout: "65%" }
-    });
-  }
-
-  var eB = document.getElementById("chartB");
-  if (eB && dL.length > 0) {
-    CB = new Chart(eB, {
-      type: "bar",
-      data: { labels: dL, datasets: [{ label: "Agendas", data: dD, backgroundColor: "rgba(255,215,0,0.7)", borderRadius: 6 }] },
-      options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#888" }, grid: { color: "#1e1e38" } }, y: { ticks: { color: "#888" }, grid: { color: "#1e1e38" }, beginAtZero: true } } }
-    });
-  }
-}
-
-loadData();
-</script>
-</body>
-</html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Aureum Dashboard - Agendas Evergreen</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0a15;color:#e0e0e0;min-height:100vh}
+    .header{background:linear-gradient(135deg,#12122a,#1a1a35);padding:20px 32px;border-bottom:2px solid rgba(255,215,0,0.2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .logo{font-size:26px;font-weight:900;color:#ffd700}
+    .sub{font-size:11px;color:#555;margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+    .container{max-width:1440px;margin:0 auto;padding:24px 20px}
+    .wbox{background:#12122a;border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:20px;margin-bottom:24px}
+    .wbox h3{color:#ffd700;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}
+    .wtabs{display:flex;flex-wrap:wrap;gap:8px}
+    .wt{padding:8px 18px;border-radius:30px;border:1px solid #2a2a4a;background:transparent;color:#888;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s}
+    .wt:hover,.wt.on{background:linear-gradient(90deg,#ffd700,#ffaa00);color:#0a0a15;border-color:transparent;font-weight:800}
+    .grid5{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:24px}
+    .kpi{background:#12122a;border:1px solid #1e1e38;border-radius:14px;padding:22px 20px;position:relative;overflow:hidden;transition:transform .2s}
+    .kpi:hover{transform:translateY(-2px)}
+    .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#ffd700,#ff8800)}
+    .kl{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+    .kv{font-size:36px;font-weight:900;color:#ffd700;line-height:1}
+    .ks{font-size:11px;color:#444;margin-top:6px}
+    .pb{background:#0a0a15;border-radius:6px;height:5px;margin-top:10px;overflow:hidden}
+    .pf{height:100%;border-radius:6px;background:linear-gradient(90deg,#ffd700,#ff8800);transition:width .6s}
+    .r2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+    .card{background:#12122a;border:1px solid #1e1e38;border-radius:14px;padding:22px}
+    .card h3{color:#ffd700;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+    table{width:100%;border-collapse:collapse}
+    th{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px;padding:8px 12px;border-bottom:1px solid #1e1e38;text-align:left}
+    td{padding:10px 12px;border-bottom:1px solid #0f0f20;font-size:13px}
+    tr:hover td{background:rgba(255,215,0,0.03)}
+    .b-si{background:rgba(0,200,100,0.15);color:#00c864;padding:3px 8px;border-radius:10px;font-size:11px}
+    .b-no{background:rgba(255,60,60,0.15);color:#ff3c3c;padding:3px 8px;border-radius:10px;font-size:11px}
+    .b-ok{background:rgba(0,200,100,0.15);color:#00c864;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
+    .b-pend{background:rgba(255,165,0,0.15);color:#ffa500;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
+    .b-neg{background:rgba(255,60,60,0.15);color:#ff6060;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
+    .b-seg{background:rgba(100,150,255,0.15);color:#6496ff;padding:3px 8px;border-radius:10px;font-size:11px;white-space:nowrap}
+    .refresh-btn{background:linear-gradient(90deg,#ffd700,#ffaa00);color:#0a0a15;border:none;padding:8px 18px;border-radius:20px;font-weight:700;cursor:pointer;font-size:12px}
+    .refresh-btn:hover{opacity:0.85}
+    .status{font-size:11px;color:#555;margin-left:12px}
+    .loading{text-align:center;padding:60px;color:#555;font-size:14px}
+    @media(max-width:700px){.r2{grid-template-columns:1fr}}
+    </style>
+  </head>
+  <body>
+    <div class="header">
+        <div>
+              <div class="logo">AUREUM</div>
+              <div class="sub">Dashboard de Agendas y Ventas - Evergreen</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+              <button class="refresh-btn" id="btnRefresh">Actualizar datos</button>button>
+              <span class="status" id="lastUpdate"></span>span>
+        </div>
+    </div>
+    <div class="container">
+        <div id="app"><div class="loading">Cargando datos desde Google Sheets...</div></div>
+    </div>
+    <script>
+      var API = "https://script.google.com/macros/s/AKfycbwILis_7d5FpYpL4zAVmNtWGmB5P63WFHodzk9nFIg9_FPVFy-Nr9RsGnX8_00ZAceNUQ/exec";
+      var AG = []; var VT = []; var SELW = "todo"; var CD = null; var CB = null;
+      document.getElementById("btnRefresh").addEventListener("click", loadData);
+      document.addEventListener("click", function(e) {
+          if (e.target && e.target.classList.contains("wt")) { SELW = e.target.getAttribute("data-w"); render(); }
+      });
+      function loadData() {
+          document.getElementById("lastUpdate").textContent = "Actualizando...";
+          var s = document.createElement("script");
+          s.src = API + "?callback=onData&t=" + Date.now();
+          document.head.appendChild(s);
+      }
+      function onData(data) {
+          if (data && data.agendas) {
+                AG = data.agendas; VT = data.ventas || [];
+                var ts = data.timestamp ? new Date(data.timestamp) : new Date();
+                var h = ts.getHours().toString().padStart(2,"0");
+                var m = ts.getMinutes().toString().padStart(2,"0");
+                document.getElementById("lastUpdate").textContent = "Actualizado " + h + ":" + m;
+          } else {
+                document.getElementById("lastUpdate").textContent = "Error al cargar";
+          }
+          render();
+      }
+      function parseDate(str) {
+          if (!str) return null;
+          if (str instanceof Date) return str;
+          var d = new Date(str.toString().trim());
+          return isNaN(d) ? null : d;
+      }
+      function getMonday(d) {
+          var day = d.getDay();
+          var mon = new Date(d);
+          mon.setDate(d.getDate() - ((day === 0 ? 7 : day) - 1));
+          mon.setHours(0,0,0,0);
+          return mon;
+      }
+      function getSunday(mon) {
+          var sun = new Date(mon);
+          sun.setDate(mon.getDate() + 6);
+              sun.setHours(23,59,59,999);
+          return sun;
+      }
+      function getWeekKey(d) { return getMonday(d).toISOString().slice(0,10); }
+      function getWeekNum(d) {
+          var j = new Date(d.getFullYear(), 0, 1);
+          return Math.ceil(((d - j) / 86400000 + j.getDay() + 1) / 7);
+      }
+      function fmtD(d) {
+          var mo = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+          return d.getDate() + " " + mo[d.getMonth()];
+      }
+      function getWeeks() {
+          var weeks = {};
+          for (var i = 0; i < AG.length; i++) {
+                var d = parseDate(AG[i].fecha);
+                if (!d) continue;
+                var mon = getMonday(d);
+                var key = mon.toISOString().slice(0,10);
+                if (!weeks[key]) {
+                        var sun = getSunday(mon);
+                        var wn = getWeekNum(mon);
+                        weeks[key] = { key: key, label: "Sem " + wn + " (" + fmtD(mon) + " - " + fmtD(sun) + ")", mon: mon, sun: sun };
+                }
+          }
+          return Object.values(weeks).sort(function(a,b){ return a.mon - b.mon; });
+      }
+      function getWeekBounds(key) {
+          var wks = getWeeks();
+          for (var i = 0; i < wks.length; i++) { if (wks[i].key === key) return wks[i]; }
+          return null;
+      }
+      function filterAG(ag) {
+          if (SELW === "todo") return ag;
+          var w = getWeekBounds(SELW);
+          if (!w) return ag;
+          return ag.filter(function(a) { var d = parseDate(a.fecha); return d && d >= w.mon && d <= w.sun; });
+      }
+      function filterVT(vt) {
+          if (SELW === "todo") return vt;
+          var w = getWeekBounds(SELW);
+          if (!w) return vt;
+          return vt.filter(function(v) { var d = parseDate(v.fechaPago); return d && d >= w.mon && d <= w.sun; });
+      }
+      function badgeR(r) {
+          if (!r) return "<span class=b-seg>-</span>";
+          var rl = r.toLowerCase();
+          if (rl.indexOf("compro") > -1 || rl.indexOf("compra") > -1 || rl.indexOf("abono") > -1 || rl.indexOf("cuotas") > -1 || rl.indexOf("pago") > -1) return "<span class=b-ok>" + r + "</span>";
+          if (rl.indexOf("pendiente") > -1 || rl.indexOf("link") > -1) return "<span class=b-pend>" + r + "</span>";
+          if (rl.indexOf("no se present") > -1 || rl.indexOf("no tiene") > -1) return "<span class=b-neg>" + r + "</span>";
+          return "<span class=b-seg>" + r + "</span>";
+      }
+      function kpi(label, value, sub, rate, pct) {
+          var bar = pct > 0 ? "<div class=pb><div class=pf style='width:" + pct + "%'></div></div>" : "";
+          var rH = rate ? "<div class=ks>" + rate + "</div>" : "";
+          return "<div class=kpi><div class=kl>" + label + "</div><div class=kv>" + value + "</div><div class=ks>" + sub + "</div>" + rH + bar + "</div>";
+      }
+      function render() {
+          var wks = getWeeks();
+          var filAG = filterAG(AG);
+          var filVT = filterVT(VT);
+          var tot = filAG.length;
+          var pres = filAG.filter(function(a){ return a.sePresento === "SI"; }).length;
+          var noS = filAG.filter(function(a){ return a.sePresento === "NO"; }).length;
+          var sr = tot > 0 ? Math.round(pres / tot * 100) : 0;
+          var vtas = filVT.length;
+          var cr = pres > 0 ? Math.round(vtas / pres * 100) : 0;
+          var cashTot = 0;
+          for (var i = 0; i < filVT.length; i++) {
+                var cv = (filVT[i].cash || "").toString().replace(/[^0-9.]/g,"");
+                cashTot += parseFloat(cv) || 0;
+          }
+          var rC = {};
+          for (var i = 0; i < filAG.length; i++) {
+                var r = filAG[i].resultado || "Sin resultado";
+                rC[r] = (rC[r] || 0) + 1;
+          }
+          var dC = {};
+          var dn = ["Dom","Lun","Mar","Mie","Jue","Vie","Sab"];
+          for (var i = 0; i < filAG.length; i++) {
+                var dd = parseDate(filAG[i].fecha);
+                if (!dd) continue;
+                var nm = dn[dd.getDay()];
+                dC[nm] = (dC[nm] || 0) + 1;
+          }
+          var tH = "<div class=wbox><h3>Filtrar por semana (fecha de la cita)</h3><div class=wtabs>";
+          tH += "<button class='wt" + (SELW === "todo" ? " on" : "") + "' data-w=todo>Todo el periodo</button>";
+          for (var i = 0; i < wks.length; i++) {
+                tH += "<button class='wt" + (SELW === wks[i].key ? " on" : "") + "' data-w=" + wks[i].key + ">" + wks[i].label + "</button>";
+          }
+          tH += "</div></div>";
+          var kH = "<div class=grid5>";
+          kH += kpi("Agendas Totales", tot, "con SI o NO registrado", "", 0);
+          kH += kpi("Se Presentaron", pres, "de " + tot + " agendas", sr + "% show rate", sr);
+          kH += kpi("No Shows", noS, "no se presentaron", (100-sr) + "% no show rate", 100-sr);
+          kH += kpi("Ventas Cerradas", vtas, "de " + pres + " presentes", cr + "% close rate", cr);
+          var cS = cashTot > 0 ? "$" + Math.round(cashTot).toLocaleString("es-AR") : "$0";
+          kH += kpi("Cash Collected", cS, "monto abonado real", "", 0);
+          kH += "</div>";
+          var rL = Object.keys(rC);
+          var rD = rL.map(function(k){ return rC[k]; });
+          var rCol = ["#ffd700","#ff8800","#00c864","#6496ff","#ff6060","#c800ff","#00d4ff","#ff4488","#88ff00","#ffcc00"];
+          var dL = Object.keys(dC);
+          var dD = dL.map(function(k){ return dC[k]; });
+          var cH = "<div class=r2>";
+          cH += "<div class=card><h3>Resultados de Agenda</h3><canvas id=chartD height=220></canvas></div>";
+          cH += "<div class=card><h3>Agendas por Dia (fecha cita)</h3><canvas id=chartB height=220></canvas></div>";
+          cH += "</div>";
+          var aH = "<div class=wbox><h3>Detalle de Agendas (" + tot + ")</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha Cita</th><th>Hora</th><th>Closer</th><th>Presento</th><th>Resultado</th></tr></thead><tbody>";
+          for (var i = 0; i < filAG.length; i++) {
+                var a = filAG[i];
+                var fp = a.fecha ? a.fecha.toString().slice(0,15) : "-";
+                var sp = a.sePresento === "SI" ? "<span class=b-si>SI</span>" : "<span class=b-no>NO</span>";
+                aH += "<tr><td>" + (a.nombre||"-") + "</td><td>" + fp + "</td><td>" + (a.hora||"-") + "</td><td>" + (a.closer||"-") + "</td><td>" + sp + "</td><td>" + badgeR(a.resultado) + "</td></tr>";
+          }
+          aH += "</tbody></table></div></div>";
+          var vH = "<div class=wbox><h3>Ventas Cerradas (" + filVT.length + ")</h3><div style=overflow-x:auto><table><thead><tr><th>Nombre</th><th>Fecha Pago</th><th>Closer</th><th>Setter</th><th>Programa</th><th>Plan</th><th>Facturacion</th><th>Cash Collected</th></tr></thead><tbody>";
+          for (var i = 0; i < filVT.length; i++) {
+                var v = filVT[i];
+                var fp2 = v.fechaPago ? v.fechaPago.toString().slice(0,15) : "-";
+                var cashV = v.cash ? "$" + v.cash : "-";
+                vH += "<tr><td>" + (v.nombre||"-") + "</td><td>" + fp2 + "</td><td>" + (v.closer||"-") + "</td><td>" + (v.setter||"-") + "</td><td>" + (v.programa||"-") + "</td><td>" + (v.plan||"-") + "</td><td>" + (v.facturacion||"-") + "</td><td>" + cashV + "</td></tr>";
+          }
+          vH += "</tbody></table></div></div>";
+          document.getElementById("app").innerHTML = tH + kH + cH + aH + vH;
+          if (CD) { CD.destroy(); CD = null; }
+          if (CB) { CB.destroy(); CB = null; }
+          var eD = document.getElementById("chartD");
+          if (eD && rL.length > 0) {
+                CD = new Chart(eD, { type: "doughnut", data: { labels: rL, datasets: [{ data: rD, backgroundColor: rCol, borderWidth: 2, borderColor: "#0a0a15" }] }, options: { plugins: { legend: { labels: { color: "#888", font: { size: 11 } } } }, cutout: "65%" } });
+          }
+          var eB = document.getElementById("chartB");
+          if (eB && dL.length > 0) {
+                CB = new Chart(eB, { type: "bar", data: { labels: dL, datasets: [{ label: "Agendas", data: dD, backgroundColor: "rgba(255,215,0,0.7)", borderRadius: 6 }] }, options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#888" }, grid: { color: "#1e1e38" } }, y: { ticks: { color: "#888" }, grid: { color: "#1e1e38" }, beginAtZero: true } } } });
+      }
+      }
+      loadData();
+    </script>
+  </body>
+</html>html>
+    </script>
+        </div>
+  </body>
+  </style></title>
+  </head>
