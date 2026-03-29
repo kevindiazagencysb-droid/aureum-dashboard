@@ -134,7 +134,11 @@
           return null;
       }
       function filterAG(ag) {
-          if (SELW === "todo") return ag;
+if (SELW === "todo") {
+              var today = new Date();
+                            today.setHours(23,59,59,999);
+                                          return ag.filter(function(a) { var d = parseDate(a.fecha); return d && d <= today; });
+                                                    }}
           var w = getWeekBounds(SELW);
           if (!w) return ag;
           return ag.filter(function(a) { var d = parseDate(a.fecha); return d && d >= w.mon && d <= w.sun; });
@@ -163,6 +167,8 @@
           var filAG = filterAG(AG);
           var filVT = filterVT(VT);
           var tot = filAG.length;
+                    var todayM = new Date(); todayM.setHours(23,59,59,999);
+                              var pendingCount = AG.filter(function(a){ var d=parseDate(a.fecha); return d && d > todayM; }).length;
           var pres = filAG.filter(function(a){ return a.sePresento === "SI"; }).length;
           var noS = filAG.filter(function(a){ return a.sePresento === "NO"; }).length;
           var sr = tot > 0 ? Math.round(pres / tot * 100) : 0;
@@ -193,8 +199,8 @@
           }
           tH += "</div></div>";
           var kH = "<div class=grid5>";
-          kH += kpi("Agendas Totales", tot, "con SI o NO registrado", "", 0);
-          kH += kpi("Se Presentaron", pres, "de " + tot + " agendas", sr + "% show rate", sr);
+                    kH += kpi("Agendas Totales", tot, (SELW === "todo" && pendingCount > 0 ? tot + " tomadas + " + pendingCount + " pendientes" : "agendas con fecha de cita"), "", 0);
+                    kH += kpi("Se Presentaron", pres, "de " + tot + " citas tomadas", sr + "% show rate", sr);
           kH += kpi("No Shows", noS, "no se presentaron", (100-sr) + "% no show rate", 100-sr);
           kH += kpi("Ventas Cerradas", vtas, "de " + pres + " presentes", cr + "% close rate", cr);
           var cS = cashTot > 0 ? "$" + Math.round(cashTot).toLocaleString("es-AR") : "$0";
