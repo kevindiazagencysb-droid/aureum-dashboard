@@ -138,7 +138,7 @@ if (SELW === "todo") {
               var today = new Date();
                             today.setHours(23,59,59,999);
                                           return ag.filter(function(a) { var d = parseDate(a.fecha); return d && d <= today; });
-                                                    }}
+          }
           var w = getWeekBounds(SELW);
           if (!w) return ag;
           return ag.filter(function(a) { var d = parseDate(a.fecha); return d && d >= w.mon && d <= w.sun; });
