@@ -11,7 +11,7 @@
     .header{background:linear-gradient(135deg,#12122a,#1a1a35);padding:20px 32px;border-bottom:2px solid rgba(255,215,0,0.2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
     .logo{font-size:26px;font-weight:900;color:#ffd700}
     .sub{font-size:11px;color:#555;margin-top:4px;letter-spacing:1px;text-transform:uppercase}
-    .container{max-width:1440px;margin:0 auto;padding:24px 20px}
+    .container{max-width:1440px;margin:0 auto;padding:24px 20px}hh
     .wbox{background:#12122a;border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:20px;margin-bottom:24px}
     .wbox h3{color:#ffd700;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}
     .wtabs{display:flex;flex-wrap:wrap;gap:8px}
@@ -135,9 +135,7 @@
       }
       function filterAG(ag) {
 if (SELW === "todo") {
-              var today = new Date();
-                            today.setHours(23,59,59,999);
-                                          return ag.filter(function(a) { var d = parseDate(a.fecha); return d && d <= today; });
+                                          return ag.filter(function(a) { return a.tieneResultado === true; });
           }
           var w = getWeekBounds(SELW);
           if (!w) return ag;
@@ -167,8 +165,7 @@ if (SELW === "todo") {
           var filAG = filterAG(AG);
           var filVT = filterVT(VT);
           var tot = filAG.length;
-                    var todayM = new Date(); todayM.setHours(23,59,59,999);
-                              var pendingCount = AG.filter(function(a){ var d=parseDate(a.fecha); return d && d > todayM; }).length;
+                                                  var pendingCount = AG.filter(function(a){ return !a.tieneResultado; }).length;
           var pres = filAG.filter(function(a){ return a.sePresento === "SI"; }).length;
           var noS = filAG.filter(function(a){ return a.sePresento === "NO"; }).length;
           var sr = tot > 0 ? Math.round(pres / tot * 100) : 0;
