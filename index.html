@@ -39,8 +39,9 @@ function rb(r){var rl=String(r||'').toLowerCase();if(rl.indexOf('compr')>-1)retu
 function loadSheet(gid,cb){
   var url='https://docs.google.com/spreadsheets/d/'+SID+'/gviz/tq?tqx=out:json&headers=1&gid='+gid;
   fetch(url).then(function(r){return r.text();}).then(function(txt){
-    var json=txt.replace(/^.*?\(/, '').replace(/\);?\s*$/, '');
-    try{cb(JSON.parse(json));}catch(e){cb(null);}
+    var m=txt.match(/\{[\s\S]*\}/);
+    if(!m)return cb(null);
+    try{cb(JSON.parse(m[0]));}catch(e){cb(null);}
   }).catch(function(){cb(null);});
 }
 function loadAll(){
