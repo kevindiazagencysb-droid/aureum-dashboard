@@ -27,7 +27,7 @@
 var SID='13UVRCMoLYy1XRIusbrZKavQ4sme4YS8Xh9BGNqxe90A';
 var GID_V='1527184032',GID_A='0';
 var D={ventas:[],agendas:[],semanas:[]},activeWeek='all',charts={};
-var MESES={ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,oct:10,nov:11,dic:12,jan:1,apr:4,aug:8,dec:12};
+var MESES={ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,oct:10,nov:11,dic:12,jan:1,apr:4,aug:8,dec:12,january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
 function gs(v){if(!v)return'';if(v.f)return String(v.f);if(v.v!==undefined&&v.v!==null)return String(v.v);return'';}
 function money(v){if(!v)return 0;var s=gs(v).replace(/[$\s]/g,'').replace(/\.(\d{3})(?=\.|$)/g,'$1').replace(',','.');var n=parseFloat(s);return isNaN(n)?0:n;}
 function si(s,q){return String(s||'').toLowerCase().indexOf(q)>-1;}
@@ -41,14 +41,7 @@ function loadSheet(gid,cb){var url='https://docs.google.com/spreadsheets/d/'+SID
 function loadAll(){var l=0;document.getElementById('ls').classList.remove('h');document.getElementById('ls-sub').textContent='Cargando datos...';loadSheet(GID_V,function(d){pVentas(d);l++;if(l===2)go();});loadSheet(GID_A,function(d){pAgendas(d);l++;if(l===2)go();});}
 function pVentas(d){D.ventas=[];if(!d||!d.table)return;d.table.rows.forEach(function(row){var c=row.c||[];while(c.length<18)c.push(null);var n=gs(c[3]);if(!n||n.length<2)return;var f=money(c[10]),ca=money(c[17]);if(f===0&&ca===0)return;D.ventas.push({fecha:gs(c[2]),nombre:n,plan:gs(c[8]),facturacion:f,cash:ca});});}
 function pAgendas(d){D.agendas=[];if(!d||!d.table)return;d.table.rows.forEach(function(row){var c=row.c||[];while(c.length<17)c.push(null);var n=gs(c[1]);if(!n||n.length<2)return;D.agendas.push({fecha:gs(c[0]),nombre:n,email:gs(c[2]),hora:gs(c[4]),presento:gs(c[12]).trim().toUpperCase(),resultado:gs(c[16]),compromiso:gs(c[10]),inversion:gs(c[8])});});}
-function pd(s){
-  if(!s)return null;
-  var m=s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-  if(m){var y=parseInt(m[3]);if(y<100)y+=2000;return new Date(y,parseInt(m[2])-1,parseInt(m[1]));}
-  var m2=s.match(/(\w+)\.?\s+(\d{1,2}),?\s+(\d{4})/);
-  if(m2){var mes=MESES[m2[1].toLowerCase().substring(0,3)];if(mes)return new Date(parseInt(m2[3]),mes-1,parseInt(m2[2]));}
-  return null;
-}
+function pd(s){ if(!s)return null; var iso=s.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(iso)return new Date(parseInt(iso[1]),parseInt(iso[2])-1,parseInt(iso[3])); var m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/); if(m){var y=parseInt(m[3]);if(y<100)y+=2000;return new Date(y,parseInt(m[2])-1,parseInt(m[1]));} var m2=s.match(/([A-Za-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\.?\s+(\d{1,2}),?\s+(\d{4})/); if(m2){var mes=MESES[m2[1].toLowerCase()];if(!mes)mes=MESES[m2[1].toLowerCase().substring(0,3)];if(mes)return new Date(parseInt(m2[3]),mes-1,parseInt(m2[2]));} return null; }
 function wkk(d){if(!d)return'sf';var day=d.getDay();var mon=new Date(d);mon.setDate(d.getDate()-((day+6)%7));var sun=new Date(mon);sun.setDate(mon.getDate()+6);var f=function(dt){return dt.getDate()+'/'+(dt.getMonth()+1)+'/'+dt.getFullYear();};return f(mon)+' al '+f(sun);}
 function bSem(){var m={};D.agendas.forEach(function(a){var k=wkk(pd(a.fecha));if(!m[k])m[k]={key:k,agendas:[],ventas:[],d:pd(a.fecha)||new Date(0)};m[k].agendas.push(a);});D.ventas.forEach(function(v){var k=wkk(pd(v.fecha));if(!m[k])m[k]={key:k,agendas:[],ventas:[],d:pd(v.fecha)||new Date(0)};m[k].ventas.push(v);});D.semanas=Object.values(m).sort(function(a,b){return a.d-b.d;}).filter(function(s){return s.key!=='sf';});}
 function cm2(ag,vn){var sh=ag.filter(function(a){return a.presento==='SI';});var ns=ag.filter(function(a){return a.presento==='NO';});var re=ag.filter(function(a){return si(a.resultado,'reagend');});var co=ag.filter(function(a){return si(a.resultado,'compr');});var lk=ag.filter(function(a){return si(a.resultado,'link');});var sg=ag.filter(function(a){return si(a.resultado,'seguimiento')&&!si(a.resultado,'link');});var sd=ag.filter(function(a){return si(a.resultado,'dinero');});var np=ag.filter(function(a){return si(a.resultado,'no se');});var sr=ag.filter(function(a){return !String(a.resultado||'').trim()&&a.presento!=='NO';});var f=vn.reduce(function(s,v){return s+v.facturacion;},0);var ca=vn.reduce(function(s,v){return s+v.cash;},0);return{totalAgendas:ag.length,shows:sh.length,noShows:ns.length,reagendas:re.length,compro:co.length,links:lk.length,seguimientos:sg.length,sinDinero:sd.length,noPresento:np.length,sinRes:sr.length,ventas:vn.length,facturacion:Math.round(f),cash:Math.round(ca),pendiente:Math.round(f-ca),ticket:vn.length>0?Math.round(f/vn.length):0,showRate:ag.length>0?Math.round(sh.length/ag.length*100):0,closeRate:sh.length>0?Math.round(vn.length/sh.length*100):0,vvag:ag.length>0?Math.round(vn.length/ag.length*100):0,rRate:ag.length>0?Math.round(re.length/ag.length*100):0};}
@@ -68,3 +61,4 @@ loadAll();setInterval(loadAll,5*60*1000);
 </script>
 </body>
 </html>
+
